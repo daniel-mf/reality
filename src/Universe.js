@@ -3,6 +3,8 @@ import {Law} from "./laws/Law";
 import {PhysicalDimension} from "./dimensions/PhysicalDimension";
 import {Thing} from "./Thing";
 import {Concreta} from "./Concreta";
+import {Vector} from "./lib/Vector";
+import {Body} from "./Body";
 
 class Universe extends Concreta {
 

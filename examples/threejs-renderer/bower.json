@@ -1,0 +1,24 @@
+{
+  "name": "threejs-renderer-example",
+  "homepage": "https://github.com/daniel-mf/reality",
+  "authors": [
+    "Daniel <echo.dmf@gmail.com>"
+  ],
+  "description": "threejs renderer example",
+  "main": "index.html",
+  "keywords": [
+    "threejs",
+    "reality"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "three.js": "master"
+  }
+}

@@ -1,4 +1,5 @@
-# Low-level reality framework
+Low-level reality framework
+===========================
 
-## Purpose
-fun.
+### Purpose ###
+Fun.

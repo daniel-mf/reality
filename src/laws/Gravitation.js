@@ -38,7 +38,7 @@ class Gravitation extends Law {
                         const forceVector = new universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G) * delta);
+                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)); //should apply delta?  * delta
                         }
 
                     } else {

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Reality ThreeJS Example</title>
-    <script src="../build/reality.js"></script>
-    <script src="../bower_components/three.js/build/three.js"></script>
+    <script src="../../build/reality.js"></script>
+    <script src="bower_components/three.js/three.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -20,16 +20,16 @@
 
     universe.add(
         new universe.Body({
-            mass: 1000000000,
+            mass: 1,
             position: {x: -300, y: -300},
         })
     );
 
     universe.add(
         new universe.Body({
-            mass: 100000000,
+            mass: 1e5,
             position: {x: 300, y: 300},
-            velocity: {x: 600, y: 0, z: -600},
+            velocity: {x: 0, y: 0, z: 0},
         })
     );
 

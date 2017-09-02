@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Reality CSS Example</title>
-    <script src="../build/reality.js"></script>
+    <script src="../../build/reality.js"></script>
     <style>
         body {
             margin: 0;
@@ -29,17 +29,18 @@
     const universe = Reality.bigBang(),
         renderer = new Reality.CSSRenderer();
 
-    universe.add(
-        new universe.Body({
-            mass: 7.347550162055999e+22,
-            position: {x: 400, y: 400},
-            velocity: {x: 0, y: 0},
-        }),
-        new universe.Body({
-            mass: 5.9736e+24,
-            position: {x: 400, y: 400 + 384400000},
-        })
-    );
+    const earth = new universe.Body({
+        mass: 5.9736e+24,
+        position: {x: 400, y: 400 + 384400000},
+    });
+
+    const moon = new universe.Body({
+        mass: 7.347550162055999e+22,
+        position: {x: 400, y: 400},
+        velocity: {x: 0, y: 0},
+    });
+
+    universe.add(earth, moon);
 
     universe.happen();
 
