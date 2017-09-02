@@ -1,0 +1,17 @@
+{
+  "name": "reality",
+  "description": "",
+  "main": "build/reality.js",
+  "authors": [
+    "Daniel MF <echo.dmf@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reality CSS Example</title>
+    <script src="../build/reality.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .body {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: red;
+            transform-style: preserve-3d;
+            transform-origin: center center;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+
+    const universe = Reality.bigBang(),
+        renderer = new Reality.CSSRenderer();
+
+    universe.add(
+        new universe.Body({
+            mass: 7.347550162055999e+22,
+            position: {x: 400, y: 400},
+            velocity: {x: 0, y: 0},
+        }),
+        new universe.Body({
+            mass: 5.9736e+24,
+            position: {x: 400, y: 400 + 384400000},
+        })
+    );
+
+    universe.happen();
+
+    renderer.renders(universe);
+
+</script>
+</body>
+</html>

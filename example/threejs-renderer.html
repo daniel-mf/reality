@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reality ThreeJS Example</title>
+    <script src="../build/reality.js"></script>
+    <script src="../bower_components/three.js/build/three.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    const universe = Reality.bigBang(),
+        renderer = new Reality.ThreeRenderer();
+
+    universe.add(
+        new universe.Body({
+            mass: 1000000000,
+            position: {x: -300, y: -300},
+        })
+    );
+
+    universe.add(
+        new universe.Body({
+            mass: 100000000,
+            position: {x: 300, y: 300},
+            velocity: {x: 600, y: 0, z: -600},
+        })
+    );
+
+    universe.happen();
+
+    renderer.renders(universe);
+</script>
+</body>
+</html>
