@@ -1,5 +1,6 @@
 import {Law} from "./Law";
 import {Body} from "../Body";
+import {G} from "../lib/Units";
 
 class Gravitation extends Law {
 
@@ -7,7 +8,7 @@ class Gravitation extends Law {
      * @return {number}
      */
     static get G() {
-        return 6.67384e-11;
+        return G;
     }
 
 
@@ -38,7 +39,7 @@ class Gravitation extends Law {
                         const forceVector = new universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)); //should apply delta?  * delta
+                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)) * delta; //should apply delta?
                         }
 
                     } else {
@@ -60,4 +61,4 @@ class Gravitation extends Law {
 
 }
 
-export {Gravitation};
+export {Gravitation, G};

@@ -21,13 +21,14 @@
     universe.add(
         new universe.Body({
             mass: 1,
-            position: {x: -300, y: -300},
+            position: {x: Reality.UNIT.AU, y: 0},
+            velocity: {x: 0, y: 0, z: 0}, //1.9909859999999998e-7
         })
     );
 
     universe.add(
         new universe.Body({
-            mass: 1e5,
+            mass: 1.98855e+30,
             position: {x: 300, y: 300},
             velocity: {x: 0, y: 0, z: 0},
         })
