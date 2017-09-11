@@ -1,6 +1,4 @@
-import {Dimension} from "./dimensions/Dimension";
 import {Law} from "./laws/Law";
-import {PhysicalDimension} from "./dimensions/PhysicalDimension";
 import {Thing} from "./Thing";
 import {Concreta} from "./Concreta";
 import {Vector} from "./lib/Vector";
@@ -36,10 +34,15 @@ class Universe extends Concreta {
         this.Body = class extends Body {
             constructor(definition = {}) {
                 super(definition);
+
                 this.position = definition.position instanceof universe.Vector ?
                     definition.position : new universe.Vector(definition.position);
+
                 this.velocity = definition.velocity instanceof universe.Vector ?
                     definition.velocity : new universe.Vector(definition.velocity);
+
+                this.size = definition.size instanceof universe.Vector ?
+                    definition.size : new universe.Vector(definition.size);
             }
         };
 

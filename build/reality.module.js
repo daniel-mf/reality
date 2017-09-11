@@ -9,10 +9,16 @@
 const c = 299792458;
 
 /**
+ * Julian year
+ * @type {number}
+ */
+const a = 365.25;
+
+/**
  * light-year
  * @type {number}
  */
-const ly = c * 365.25 * 24 * 60 * 60;
+const ly = c * a * 86400;
 
 /**
  * kilolight-year
@@ -44,30 +50,17 @@ const AU = 1.496 * 10 ** 11;
  */
 const G = 6.67384e-11;
 
-const MASS = {
-    SUN: 1.98855 * 10 ** 30,
-    EARTH: 5.9736e+24,
-    MOON: 7.347550162055999e+22
-};
-
-const RADIUS = {
-    SUN: 696000000,
-    EARTH: 6378000.137,
-    MOON: 1738000
-};
-
 //export const EARTH_ANGULAR_VELOCITY_METRES_PER_SECOND = 1.990986 * 10 ** -7;
 
 var units = Object.freeze({
 	c: c,
+	a: a,
 	ly: ly,
 	kly: kly,
 	Mly: Mly,
 	Gly: Gly,
 	AU: AU,
-	G: G,
-	MASS: MASS,
-	RADIUS: RADIUS
+	G: G
 });
 
 class RealityException extends Error {
@@ -144,20 +137,7 @@ class Abstracta extends Thing {
 
 }
 
-class Dimension extends Abstracta {
-
-    constructor(name) {
-        super();
-        this.name = name;
-    }
-
-}
-
 class Law extends Abstracta {
-
-}
-
-class PhysicalDimension extends Dimension {
 
 }
 
@@ -396,14 +376,45 @@ class Vector {
 }
 
 class Body extends Concreta {
-    constructor({mass = 0}) {
+    constructor({mass = 0, size}) {
         super();
+
         this.mass = mass;
+
+        /**
+         * @type {Vector}
+         */
+        this.size = size;
     }
 
-    isMassive() {
+    get isMassive() {
         return !!this.mass;
     }
+
+    get volume() {
+        return this.size.reduce((c, v) => c * v);
+    }
+
+    get density() {
+        const volume = this.volume;
+        if (volume && this.isMassive) {
+            return this.mass / volume;
+        }
+        return 0; //Density of mass-less stuff? What about a photon?
+    }
+
+}
+
+class Dimension extends Abstracta {
+
+    constructor(name) {
+        super();
+        this.name = name;
+    }
+
+}
+
+class PhysicalDimension extends Dimension {
 
 }
 
@@ -449,10 +460,15 @@ class Universe extends Concreta {
         this.Body = class extends Body {
             constructor(definition = {}) {
                 super(definition);
+
                 this.position = definition.position instanceof universe.Vector ?
                     definition.position : new universe.Vector(definition.position);
+
                 this.velocity = definition.velocity instanceof universe.Vector ?
                     definition.velocity : new universe.Vector(definition.velocity);
+
+                this.size = definition.size instanceof universe.Vector ?
+                    definition.size : new universe.Vector(definition.size);
             }
         };
 
@@ -521,7 +537,7 @@ class Gravitation extends Law {
 
         for (const particle of this.universe.bodies) {
 
-            if (!particle.isMassive()) {
+            if (!particle.isMassive) {
                 continue;
             }
 
@@ -529,7 +545,7 @@ class Gravitation extends Law {
 
                 for (const otherParticle of this.universe.bodies) {
 
-                    if (!otherParticle.mass || particle === otherParticle) {
+                    if (!otherParticle.isMassive || particle === otherParticle) {
                         continue;
                     }
 
@@ -619,6 +635,74 @@ class Motion extends Law {
         return delta;
     }
 
+}
+
+const SUN = {
+    MASS: 1.98855 * 10 ** 30,
+    RADIUS: 696000000,
+    POSITION: {x: 0, y: 0, z: 0}
+};
+
+const EARTH = {
+    MASS: 5.9736e+24,
+    RADIUS: 6378000.137,
+    POSITION: {x: AU, y: 0, z: 0}
+};
+
+const MOON = {
+    MASS: 7.347550162055999e+22,
+    RADIUS: 1738000,
+    POSITION: {x: 0, y: 0, z: 0}, //relative to earth?
+    DISTANCE_TO: {
+        EARTH: 384400000
+    }
+};
+
+function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
+    const universe = bigBang();
+
+    const sun = new universe.Body({
+        mass: SUN.MASS,
+        size: new universe.Vector({
+            x: SUN.RADIUS * 2,
+            y: SUN.RADIUS * 2,
+            z: SUN.RADIUS * 2
+        })
+    });
+
+    const earth = new universe.Body({
+        mass: EARTH.MASS,
+        size: new universe.Vector({
+            x: EARTH.RADIUS * 2,
+            y: EARTH.RADIUS * 2,
+            z: EARTH.RADIUS * 2
+        }),
+        position: new universe.Vector({
+            z: AU,
+        })
+    });
+
+    const moon = new universe.Body({
+        mass: MOON.MASS,
+        size: new universe.Vector({
+            x: MOON.RADIUS * 2,
+            y: MOON.RADIUS * 2,
+            z: MOON.RADIUS * 2
+        }),
+        position: new universe.Vector({
+            x: 7900000,
+            z: AU - MOON.DISTANCE_TO.EARTH,
+        }),
+        velocity: new universe.Vector({
+            x: 0
+        })
+    });
+
+    universe.add(sun);
+    universe.add(earth);
+    universe.add(moon);
+
+    return universe;
 }
 
 function bigBang() {
@@ -723,15 +807,16 @@ class ThreeRenderer extends Renderer {
 
         this.scene = new THREE.Scene();
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        this.camera.position.z = 1000;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, AU * 2);
+        this.camera.position.z = AU - EARTH.RADIUS;
 
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         for (const thing of this.universe.bodies) {
+            console.log(thing.size.x, thing.size.y, thing.size.z);
             thing.render = new THREE.Mesh(
-                new THREE.SphereGeometry(100),
+                new THREE.CubeGeometry(thing.size.x, thing.size.y, thing.size.z),
                 new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true})
             );
             this.scene.add(thing.render);
@@ -763,4 +848,4 @@ const UNIT = units;
 //What is the nature of reality?
 const nature = undefined;
 
-export { UNIT, nature, RealityException as Exception, Universe, Space, Law, Gravitation, Time, PhysicalDimension, Vector, CSSRenderer, ThreeRenderer, bigBang };
+export { UNIT, nature, RealityException as Exception, Universe, Space, Law, Gravitation, Time, PhysicalDimension, Vector, CSSRenderer, ThreeRenderer, bigBang, createSolarSystem };

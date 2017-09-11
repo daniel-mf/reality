@@ -16,7 +16,7 @@ class Gravitation extends Law {
 
         for (const particle of this.universe.bodies) {
 
-            if (!particle.isMassive()) {
+            if (!particle.isMassive) {
                 continue;
             }
 
@@ -24,7 +24,7 @@ class Gravitation extends Law {
 
                 for (const otherParticle of this.universe.bodies) {
 
-                    if (!otherParticle.mass || particle === otherParticle) {
+                    if (!otherParticle.isMassive || particle === otherParticle) {
                         continue;
                     }
 
@@ -60,4 +60,4 @@ class Gravitation extends Law {
 
 }
 
-export {Gravitation, G};
+export {Gravitation};

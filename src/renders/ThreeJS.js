@@ -1,5 +1,7 @@
 import {Renderer} from "./Renderer";
 import {RealityException} from "../lib/RealityException";
+import {AU} from "../lib/Units";
+import {EARTH} from "../extra/data/milkyWay/solarSystem";
 
 class ThreeRenderer extends Renderer {
 
@@ -17,15 +19,16 @@ class ThreeRenderer extends Renderer {
 
         this.scene = new THREE.Scene();
 
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
-        this.camera.position.z = 1000;
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, AU * 2);
+        this.camera.position.z = AU - EARTH.RADIUS;
 
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         for (const thing of this.universe.bodies) {
+            console.log(thing.size.x, thing.size.y, thing.size.z);
             thing.render = new THREE.Mesh(
-                new THREE.SphereGeometry(100),
+                new THREE.CubeGeometry(thing.size.x, thing.size.y, thing.size.z),
                 new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true})
             );
             this.scene.add(thing.render);

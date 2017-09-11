@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reality ThreeJS Example</title>
+    <script src="../../build/reality.js"></script>
+    <script src="bower_components/three.js/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+    const universe = Reality.createSolarSystem(),
+        renderer = new Reality.ThreeRenderer();
+
+    universe.happen();
+
+    renderer.renders(universe);
+</script>
+</body>
+</html>

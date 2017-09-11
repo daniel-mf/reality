@@ -9,10 +9,16 @@
 export const c = 299792458;
 
 /**
+ * Julian year
+ * @type {number}
+ */
+export const a = 365.25;
+
+/**
  * light-year
  * @type {number}
  */
-export const ly = c * 365.25 * 24 * 60 * 60;
+export const ly = c * a * 86400;
 
 /**
  * kilolight-year
@@ -43,17 +49,5 @@ export const AU = 1.496 * 10 ** 11;
  * @type {number}
  */
 export const G = 6.67384e-11;
-
-export const MASS = {
-    SUN: 1.98855 * 10 ** 30,
-    EARTH: 5.9736e+24,
-    MOON: 7.347550162055999e+22
-};
-
-export const RADIUS = {
-    SUN: 696000000,
-    EARTH: 6378000.137,
-    MOON: 1738000
-};
 
 //export const EARTH_ANGULAR_VELOCITY_METRES_PER_SECOND = 1.990986 * 10 ** -7;
