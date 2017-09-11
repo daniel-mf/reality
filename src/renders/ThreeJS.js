@@ -3,6 +3,10 @@ import {RealityException} from "../lib/RealityException";
 
 class ThreeRenderer extends Renderer {
 
+    constructor() {
+        super(...arguments);
+    }
+
     setup() {
 
         if (typeof THREE === 'undefined') {

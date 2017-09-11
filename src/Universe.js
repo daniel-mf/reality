@@ -5,6 +5,8 @@ import {Thing} from "./Thing";
 import {Concreta} from "./Concreta";
 import {Vector} from "./lib/Vector";
 import {Body} from "./Body";
+import {Space} from "./Space";
+import {RealityException} from "./lib/RealityException";
 
 class Universe extends Concreta {
 
@@ -14,15 +16,16 @@ class Universe extends Concreta {
         const universe = this;
 
         this.laws = [];
-        this.dimensions = [];
         this.bodies = [];
 
         this.Vector = class extends Vector {
             constructor(values = {}) {
 
-                for (const {name: dimensionName} of universe.physicalDimensions) {
-                    if (!values.hasOwnProperty(dimensionName)) {
-                        values[dimensionName] = 0;
+                if (universe.space) {
+                    for (const {name: dimensionName} of universe.space.physicalDimensions) {
+                        if (!values.hasOwnProperty(dimensionName)) {
+                            values[dimensionName] = 0;
+                        }
                     }
                 }
 
@@ -44,14 +47,6 @@ class Universe extends Concreta {
 
     }
 
-    get physicalDimensions() {
-        return this.dimensions.filter(dimension => dimension instanceof PhysicalDimension);
-    }
-
-    get nonPhysicalDimensions() {
-        return this.dimensions.filter(dimension => !(dimension instanceof PhysicalDimension));
-    }
-
     /**
      * @param {Thing} any
      * @returns {Universe}
@@ -59,12 +54,12 @@ class Universe extends Concreta {
     add(...any) {
         super.add(...any);
         for (const thing of any) {
-            if (thing instanceof Dimension) {
-                this.dimensions.push(thing);
-            } else if (thing instanceof Law) {
+            if (thing instanceof Law) {
                 this.laws.push(thing);
             } else if (thing instanceof this.Body) {
                 this.bodies.push(thing);
+            } else if (!(thing instanceof Space)) {
+                throw new RealityException('Invalid object type');
             }
         }
         return this;
@@ -77,18 +72,24 @@ class Universe extends Concreta {
     remove(...any) {
         super.remove(...any);
         for (const thing of any) {
-            if (thing instanceof Dimension) {
-                const thingIndex = this.dimensions.indexOf(thing);
-                thingIndex >= 0 && this.dimensions.splice(thingIndex, 1);
-            } else if (thing instanceof Law) {
+            if (thing instanceof Law) {
                 const thingIndex = this.laws.indexOf(thing);
                 thingIndex >= 0 && this.laws.splice(thingIndex, 1);
             } else if (thing instanceof this.Body) {
                 const thingIndex = this.bodies.indexOf(thing);
                 thingIndex >= 0 && this.bodies.splice(thingIndex, 1);
+            } else if (!(thing instanceof Space)) {
+                throw new RealityException('Invalid object type');
             }
         }
         return this;
+    }
+
+    /**
+     * @returns {Space}
+     */
+    get space() {
+        return this._space || (this._space = this.things.find(thing => thing instanceof Space));
     }
 
 }

@@ -16,6 +16,9 @@ class Concreta extends Thing {
      */
     add(...any) {
         this.things.push(...any);
+        for (const thing of any) {
+            thing.parentThing = this;
+        }
         return this;
     }
 
@@ -28,15 +31,16 @@ class Concreta extends Thing {
             const thingIndex = this.things.indexOf(thing);
             if (thingIndex >= 0) {
                 this.things.splice(thingIndex, 1);
+                thing.parentThing = null;
             }
         }
         return this;
     }
 
-    happen(delta, parentThing) {
-        delta = super.happen(delta, parentThing);
+    happen(delta) {
+        delta = super.happen(delta);
         for (const thing of this.things) {
-            delta = thing.happen(delta, this);
+            delta = thing.happen(delta);
         }
         return delta;
     }

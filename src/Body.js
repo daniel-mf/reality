@@ -5,6 +5,11 @@ class Body extends Concreta {
         super();
         this.mass = mass;
     }
+
+    isMassive() {
+        return !!this.mass;
+    }
+
 }
 
 export {Body};

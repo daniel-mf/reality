@@ -20,8 +20,12 @@ function start() {
 
 class Renderer {
 
-    constructor() {
+    constructor(options = {}) {
         this.ready = false;
+
+        this.metre = 100;
+        this.pixelsPerMetre = options.pixelsPerMetre || 100;
+
         renderers.push(this);
         start();
     }

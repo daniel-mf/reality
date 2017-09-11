@@ -12,18 +12,17 @@ class Gravitation extends Law {
     }
 
 
-    happen(delta, universe) {
+    happen(delta) {
 
-        const physicalDimensions = universe.physicalDimensions;
+        for (const particle of this.universe.bodies) {
 
-        for (const particle of universe.bodies) {
-
-            if (!particle.mass) {
+            if (!particle.isMassive()) {
                 continue;
             }
 
             if (particle instanceof Body) {
-                for (const otherParticle of universe.bodies) {
+
+                for (const otherParticle of this.universe.bodies) {
 
                     if (!otherParticle.mass || particle === otherParticle) {
                         continue;
@@ -36,7 +35,7 @@ class Gravitation extends Law {
                     if (distance > 10 + 10) {
 
                         const totalForce = (otherParticle.mass / distanceSquared);
-                        const forceVector = new universe.Vector();
+                        const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
                             particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)) * delta; //should apply delta?

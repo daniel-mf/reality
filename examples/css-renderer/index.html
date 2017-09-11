@@ -29,18 +29,23 @@
     const universe = Reality.bigBang(),
         renderer = new Reality.CSSRenderer();
 
-    const earth = new universe.Body({
-        mass: 5.9736e+24,
-        position: {x: 400, y: 400 + 384400000},
-    });
-
-    const moon = new universe.Body({
-        mass: 7.347550162055999e+22,
-        position: {x: 400, y: 400},
-        velocity: {x: 0, y: 0},
-    });
-
-    universe.add(earth, moon);
+    universe.add(
+        new universe.Body({
+            mass: 1000000000000000000,
+            position: {x: 450, y: 350},
+            velocity: {x: 0, y: 0},
+        }),
+        new universe.Body({
+            mass: 100000000000000000,
+            position: {x: 700, y: 500},
+            velocity: {x: 350, y: -300},
+        }),
+        new universe.Body({
+            mass: 10,
+            position: {x: 720, y: 520},
+            velocity: {x: 0, y: 50},
+        })
+    );
 
     universe.happen();
 

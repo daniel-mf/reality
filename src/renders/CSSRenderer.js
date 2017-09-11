@@ -14,7 +14,9 @@ class CSSRenderer extends Renderer {
 
     update(delta, time) {
         for (const thing of this.universe.bodies) {
-            thing.render.style.transform = 'translate3d(' + (thing.position.values.map(v => (v / 500000) + 'px').join(',')) + ')';
+            thing.render.style.transform = 'translate3d(' + (
+                thing.position.values.map(v => (v / this.metre * this.pixelsPerMetre
+                ) + 'px').join(',')) + ')';
         }
     }
 

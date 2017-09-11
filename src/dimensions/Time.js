@@ -28,11 +28,10 @@ class Time extends Dimension {
 
     /**
      * @param {Number} delta
-     * @param {Thing} parentThing
      */
-    happen(delta, parentThing) {
-        //makes parent thing happen repeatedly, reducing its delta
-        requestAnimationFrame(() => parentThing.happen());
+    happen(delta) {
+        //makes parent universe happen repeatedly, reducing its delta
+        setTimeout(() => this.universe.happen(), 1000 / 60);
         return this.delta;
     }
 
