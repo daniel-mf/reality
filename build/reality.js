@@ -96,6 +96,17 @@ var units = Object.freeze({
 	         * @private
 	         */
 	        this._parentThing = null;
+
+	        /**
+	         * Dilatation to time delta
+	         * @type {number}
+	         */
+	        this.eventDeltaDilatation = 1;
+
+	    }
+
+	    getSelfEventDelta(delta) {
+	        return delta * this.eventDeltaDilatation;
 	    }
 
 	    /**
@@ -527,6 +538,18 @@ var units = Object.freeze({
 	        return this._space || (this._space = this.things.find(thing => thing instanceof Space));
 	    }
 
+	    set observer(thing) {
+	        if (thing instanceof Thing) {
+	            this._observer = thing;
+	        } else {
+	            throw new RealityException('Invalid observer');
+	        }
+	    }
+
+	    get observer() {
+	        return this._observer || null;
+	    }
+
 	}
 
 	class Gravitation extends Law {
@@ -542,6 +565,8 @@ var units = Object.freeze({
 	    happen(delta) {
 
 	        for (const particle of this.universe.bodies) {
+
+	            const particleEventDelta = particle.getSelfEventDelta(delta);
 
 	            if (!particle.isMassive) {
 	                continue;
@@ -565,7 +590,7 @@ var units = Object.freeze({
 	                        const forceVector = new this.universe.Vector();
 
 	                        for (const [n] of forceVector) {
-	                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)) * delta; //should apply delta?
+	                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)) * particleEventDelta; //should apply delta?
 	                        }
 
 	                    } else {
@@ -596,6 +621,8 @@ var units = Object.freeze({
 	        this.oldTime = this.startTime;
 	        this._elapsedTime = 0;
 
+	        this.speed = 1;
+
 	    }
 
 	    get elapsedTime() {
@@ -604,13 +631,13 @@ var units = Object.freeze({
 	    }
 
 	    get delta() {
-	        const newTime = ( typeof performance === 'undefined' ? Date : performance ).now(),
+	        const newTime = performance.now(),
 	            diff = ( newTime - this.oldTime ) / 1000;
 
 	        this.oldTime = newTime;
 	        this._elapsedTime += diff;
 
-	        return diff;
+	        return diff * this.speed;
 	    }
 
 	    /**
@@ -632,8 +659,11 @@ var units = Object.freeze({
 
 	        for (const thing of this.universe.things) {
 	            if (thing instanceof this.universe.Body) {
+
+	                const thingEventDelta = thing.getSelfEventDelta(delta);
+
 	                for (const {name: dimensionName} of physicalDimensions) {
-	                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * delta);
+	                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * thingEventDelta);
 	                }
 	            }
 	        }
@@ -685,6 +715,9 @@ var units = Object.freeze({
 	        }),
 	        position: new universe.Vector({
 	            z: AU,
+	        }),
+	        velocity: new universe.Vector({
+	            x: 900,
 	        })
 	    });
 
@@ -696,11 +729,8 @@ var units = Object.freeze({
 	            z: MOON.RADIUS * 2
 	        }),
 	        position: new universe.Vector({
-	            x: 7900000,
+	            x: 7000000,
 	            z: AU - MOON.DISTANCE_TO.EARTH,
-	        }),
-	        velocity: new universe.Vector({
-	            x: 0
 	        })
 	    });
 
@@ -814,7 +844,11 @@ var units = Object.freeze({
 	        this.scene = new THREE.Scene();
 
 	        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, AU * 2);
-	        this.camera.position.z = AU - EARTH.RADIUS;
+	        this.camera.position.z = AU;
+	        //this.camera.position.x = EARTH.RADIUS * 2;
+	        //this.camera.position.y = EARTH.RADIUS * 60;
+	        //this.camera.rotation.x = -90 * Math.PI / 180;
+	        //window.C = this.camera;
 
 	        this.renderer = new THREE.WebGLRenderer();
 	        this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -823,12 +857,21 @@ var units = Object.freeze({
 	            console.log(thing.size.x, thing.size.y, thing.size.z);
 	            thing.render = new THREE.Mesh(
 	                new THREE.CubeGeometry(thing.size.x, thing.size.y, thing.size.z),
-	                new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true})
+	                new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true}) //, side:THREE.BackSide
 	            );
 	            this.scene.add(thing.render);
 	        }
 
 	        document.body.appendChild(this.renderer.domElement);
+
+	        const renderModel = new THREE.RenderPass(this.scene, this.camera),
+	            effectFilm = new THREE.FilmPass(0.35, 0.75, 2048, false);
+
+	        effectFilm.renderToScreen = true;
+
+	        this.composer = new THREE.EffectComposer(this.renderer);
+	        this.composer.addPass(renderModel);
+	        this.composer.addPass(effectFilm);
 
 	        return super.setup();
 
@@ -844,7 +887,8 @@ var units = Object.freeze({
 	            );
 	        }
 
-	        this.renderer.render(this.scene, this.camera);
+	        this.composer.render(delta);
+	        //this.renderer.render(this.scene, this.camera);
 	    }
 
 	}

@@ -8,8 +8,11 @@ class Motion extends Law {
 
         for (const thing of this.universe.things) {
             if (thing instanceof this.universe.Body) {
+
+                const thingEventDelta = thing.getSelfEventDelta(delta);
+
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * delta)
+                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * thingEventDelta)
                 }
             }
         }

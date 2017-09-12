@@ -95,6 +95,24 @@ class Universe extends Concreta {
         return this._space || (this._space = this.things.find(thing => thing instanceof Space));
     }
 
+    /**
+     * @param thing
+     */
+    set observer(thing) {
+        if (thing instanceof Thing) {
+            this._observer = thing;
+        } else {
+            throw new RealityException('Invalid observer');
+        }
+    }
+
+    /**
+     * @returns {Thing}
+     */
+    get observer() {
+        return this._observer || null;
+    }
+
 }
 
 export {Universe};

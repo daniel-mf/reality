@@ -9,6 +9,10 @@ class Time extends Dimension {
         this.oldTime = this.startTime;
         this._elapsedTime = 0;
 
+        this.speed = 1;
+
+        this.relativeToSpace = true;
+
     }
 
     get elapsedTime() {
@@ -17,13 +21,13 @@ class Time extends Dimension {
     }
 
     get delta() {
-        const newTime = ( typeof performance === 'undefined' ? Date : performance ).now(),
+        const newTime = performance.now(),
             diff = ( newTime - this.oldTime ) / 1000;
 
         this.oldTime = newTime;
         this._elapsedTime += diff;
 
-        return diff;
+        return diff * this.speed;
     }
 
     /**

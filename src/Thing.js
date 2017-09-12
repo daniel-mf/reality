@@ -15,6 +15,17 @@ class Thing {
          * @private
          */
         this._parentThing = null;
+
+        /**
+         * Dilatation to time delta
+         * @type {number}
+         */
+        this.eventDeltaDilatation = 1;
+
+    }
+
+    getSelfEventDelta(delta) {
+        return delta * this.eventDeltaDilatation;
     }
 
     /**

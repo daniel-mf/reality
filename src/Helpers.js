@@ -28,6 +28,9 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         }),
         position: new universe.Vector({
             z: AU,
+        }),
+        velocity: new universe.Vector({
+            x: 900,
         })
     });
 
@@ -39,11 +42,8 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: MOON.RADIUS * 2
         }),
         position: new universe.Vector({
-            x: 7900000,
+            x: 7000000,
             z: AU - MOON.DISTANCE_TO.EARTH,
-        }),
-        velocity: new universe.Vector({
-            x: 0
         })
     });
 
