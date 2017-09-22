@@ -13,6 +13,8 @@ class Universe extends Concreta {
 
         const universe = this;
 
+        this._eventDelta = Infinity;
+
         this.laws = [];
         this.bodies = [];
 
@@ -52,6 +54,10 @@ class Universe extends Concreta {
 
         this.add(...any);
 
+    }
+
+    set eventDelta(delta) {
+        this._eventDelta = delta;
     }
 
     /**
@@ -100,7 +106,7 @@ class Universe extends Concreta {
     }
 
     /**
-     * @param thing
+     * @param {Thing} thing
      */
     set observer(thing) {
         if (thing instanceof Thing) {

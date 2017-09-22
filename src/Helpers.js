@@ -52,6 +52,8 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     universe.add(earth);
     //universe.add(moon);
 
+    universe.observer = earth;
+
     return universe;
 }
 
@@ -63,8 +65,8 @@ function bigBang() {
             new PhysicalDimension('y'),
             new PhysicalDimension('z')
         ),
-        new Motion(),
-        new Gravitation()
+        new Gravitation(),
+        new Motion()
     );
 }
 

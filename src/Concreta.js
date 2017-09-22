@@ -37,12 +37,11 @@ class Concreta extends Thing {
         return this;
     }
 
-    happen(delta) {
-        delta = super.happen(delta);
+    happen() {
+        super.happen();
         for (const thing of this.things) {
-            delta = thing.happen(delta);
+            thing.happen(this.eventDelta);
         }
-        return delta;
     }
 
 }

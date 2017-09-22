@@ -33,6 +33,41 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    .info {
+      pointer-events: none;
+      font-size: .85em;
+      white-space: nowrap;
+      position: absolute;
+      margin-top: 25px;
+      width: 310px;
+      overflow: hidden;
+      padding: 6px;
+      border-radius: 3px;
+      background-color: rgba(255, 255, 255, .15);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .2s ease;
+      transition-property: opacity, transform;
+      transition-delay: .3s;
+    }
+
+    .name {
+      display: inline-block;
+      line-height: 100%;
+      background-color: rgba(255, 255, 255, .15);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    &:hover {
+      .info {
+        transition-delay: 0s;
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
   }
 
 }

@@ -30,13 +30,14 @@ class Time extends Dimension {
         return diff * this.speed;
     }
 
-    /**
-     * @param {Number} delta
-     */
-    happen(delta) {
-        //makes parent universe happen repeatedly, reducing its delta
-        setTimeout(() => this.universe.happen(), 1000 / 60);
-        return this.delta;
+    happen() {
+        //If the universe had no observer at all?
+        //Would it die at the same time it was born? I guess so...
+        if (this.universe.observer) {
+            //makes parent universe happen repeatedly, reducing its delta
+            this.universe.eventDelta = this.delta;
+            setTimeout(() => this.universe.happen(), 1000 / 60);
+        }
     }
 
 }

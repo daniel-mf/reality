@@ -118,23 +118,33 @@ class Thing {
         this._parentThing = null;
 
         /**
-         * Dilatation to time delta
-         * @type {number}
+         * @type {Number}
          */
         this.eventDeltaDilatation = 1;
 
+        this.bornAt = Date.now();
+
+        this._existenceTime = 0;
+
     }
 
-    getSelfEventDelta(delta) {
-        return delta * this.eventDeltaDilatation;
+    get eventDelta() {
+        return this.universe._eventDelta * this.eventDeltaDilatation;
     }
 
     /**
-     * @param {Number} delta
      * @returns {Number}
      */
-    happen(delta) {
-        return delta;
+    happen() {
+        this._existenceTime += this.eventDelta * 1000;
+    }
+
+    get currentTime() {
+        return this.bornAt + this._existenceTime;
+    }
+
+    get currentDate() {
+        return new Date(this.currentTime);
     }
 
     /**
@@ -156,6 +166,10 @@ class Thing {
      * @returns {Universe}
      */
     get universe() {
+
+        if (this instanceof Universe) {
+            return this;
+        }
 
         if (this._universe) {
             return this._universe;
@@ -215,12 +229,11 @@ class Concreta extends Thing {
         return this;
     }
 
-    happen(delta) {
-        delta = super.happen(delta);
+    happen() {
+        super.happen();
         for (const thing of this.things) {
-            delta = thing.happen(delta);
+            thing.happen(this.eventDelta);
         }
-        return delta;
     }
 
 }
@@ -483,6 +496,29 @@ class Space extends Concreta {
     get nonPhysicalDimensions() {
         return this.things.filter(dimension => !(dimension instanceof PhysicalDimension));
     }
+
+    happen() {
+        super.happen();
+        //TODO cause time dilatation in everything
+        for (const thing of this.universe.things) {
+
+            //concept testing only
+            if (thing.name === 'Sun') {
+
+                const secondsInOneYearOnEarth = a * 86400; //earth is the observer
+
+                //I heard somewhere that 65 seconds is the time dilatation difference between earth and sun surfaces
+                //not 100% accurate since we are working with the object's center, not the surfaces
+                const secondsInOneYearOnSun = secondsInOneYearOnEarth - 65;
+
+                thing.eventDeltaDilatation = secondsInOneYearOnSun / secondsInOneYearOnEarth;
+
+            } else {
+                thing.eventDeltaDilatation = 1;
+            }
+
+        }
+    }
 }
 
 class Universe extends Concreta {
@@ -491,6 +527,8 @@ class Universe extends Concreta {
         super();
 
         const universe = this;
+
+        this._eventDelta = Infinity;
 
         this.laws = [];
         this.bodies = [];
@@ -531,6 +569,10 @@ class Universe extends Concreta {
 
         this.add(...any);
 
+    }
+
+    set eventDelta(delta) {
+        this._eventDelta = delta;
     }
 
     /**
@@ -579,7 +621,7 @@ class Universe extends Concreta {
     }
 
     /**
-     * @param thing
+     * @param {Thing} thing
      */
     set observer(thing) {
         if (thing instanceof Thing) {
@@ -608,11 +650,9 @@ class Gravitation extends Law {
     }
 
 
-    happen(delta) {
+    happen() {
 
         for (const particle of this.universe.bodies) {
-
-            const particleEventDelta = particle.getSelfEventDelta(delta);
 
             if (!particle.isMassive) {
                 continue;
@@ -636,7 +676,7 @@ class Gravitation extends Law {
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)); //should apply delta?
+                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * this.eventDelta)); //should apply delta?
                         }
 
                     } else {
@@ -652,8 +692,6 @@ class Gravitation extends Law {
                 }
             }
         }
-
-        return delta;
     }
 
 }
@@ -688,35 +726,33 @@ class Time extends Dimension {
         return diff * this.speed;
     }
 
-    /**
-     * @param {Number} delta
-     */
-    happen(delta) {
-        //makes parent universe happen repeatedly, reducing its delta
-        setTimeout(() => this.universe.happen(), 1000 / 60);
-        return this.delta;
+    happen() {
+        //If the universe had no observer at all?
+        //Would it die at the same time it was born? I guess so...
+        if (this.universe.observer) {
+            //makes parent universe happen repeatedly, reducing its delta
+            this.universe.eventDelta = this.delta;
+            setTimeout(() => this.universe.happen(), 1000 / 60);
+        }
     }
 
 }
 
 class Motion extends Law {
 
-    happen(delta) {
+    happen() {
 
         const physicalDimensions = this.universe.space.physicalDimensions;
 
         for (const thing of this.universe.things) {
             if (thing instanceof this.universe.Body) {
-
-                const thingEventDelta = thing.getSelfEventDelta(delta);
-
+                //console.log(thing.eventDelta);
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * thingEventDelta);
+                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName]);
                 }
             }
         }
 
-        return delta;
     }
 
 }
@@ -778,6 +814,8 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     universe.add(earth);
     //universe.add(moon);
 
+    universe.observer = earth;
+
     return universe;
 }
 
@@ -789,8 +827,8 @@ function bigBang() {
             new PhysicalDimension('y'),
             new PhysicalDimension('z')
         ),
-        new Motion(),
-        new Gravitation()
+        new Gravitation(),
+        new Motion()
     );
 }
 
@@ -890,7 +928,10 @@ class CSSRenderer extends Renderer {
     createBodyElement(body) {
         const element = document.createElement('div');
         element.classList.add('body');
-        element.textContent = body.name;
+        element.innerHTML = `
+            <div class="info"></div>
+            <div class="name">${body.name}</div>
+        `;
         element.style.width = this.scaled(body.size.x) + 'px';
         element.style.height = this.scaled(body.size.y) + 'px';
         body.render = element;
@@ -907,6 +948,13 @@ class CSSRenderer extends Renderer {
         };
 
         for (const thing of this.universe.bodies) {
+
+            thing.render.querySelector('.info').innerHTML = `
+            <div>(x) Position: ${thing.position.x}</div>
+            <div>(x) Velocity: ${thing.velocity.x}</div>
+            <div>Time Dilatation at core: ${-(1-thing.eventDeltaDilatation) * 100}%</div>
+            <div>Date at core: ${thing.currentDate}</div>
+            `;
 
             //alternative to scaling to avoid scaling bug on chrome
             thing.render.style.width = (thing.size.x * this.scale) + 'px';

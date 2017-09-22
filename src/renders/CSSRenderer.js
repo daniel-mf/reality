@@ -26,7 +26,10 @@ class CSSRenderer extends Renderer {
     createBodyElement(body) {
         const element = document.createElement('div');
         element.classList.add('body');
-        element.textContent = body.name;
+        element.innerHTML = `
+            <div class="info"></div>
+            <div class="name">${body.name}</div>
+        `;
         element.style.width = this.scaled(body.size.x) + 'px';
         element.style.height = this.scaled(body.size.y) + 'px';
         body.render = element;
@@ -43,6 +46,13 @@ class CSSRenderer extends Renderer {
         };
 
         for (const thing of this.universe.bodies) {
+
+            thing.render.querySelector('.info').innerHTML = `
+            <div>(x) Position: ${thing.position.x}</div>
+            <div>(x) Velocity: ${thing.velocity.x}</div>
+            <div>Time Dilatation at core: ${-(1-thing.eventDeltaDilatation) * 100}%</div>
+            <div>Date at core: ${thing.currentDate}</div>
+            `;
 
             //alternative to scaling to avoid scaling bug on chrome
             thing.render.style.width = (thing.size.x * this.scale) + 'px';

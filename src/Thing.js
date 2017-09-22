@@ -17,23 +17,33 @@ class Thing {
         this._parentThing = null;
 
         /**
-         * Dilatation to time delta
-         * @type {number}
+         * @type {Number}
          */
         this.eventDeltaDilatation = 1;
 
+        this.bornAt = Date.now();
+
+        this._existenceTime = 0;
+
     }
 
-    getSelfEventDelta(delta) {
-        return delta * this.eventDeltaDilatation;
+    get eventDelta() {
+        return this.universe._eventDelta * this.eventDeltaDilatation;
     }
 
     /**
-     * @param {Number} delta
      * @returns {Number}
      */
-    happen(delta) {
-        return delta;
+    happen() {
+        this._existenceTime += this.eventDelta * 1000;
+    }
+
+    get currentTime() {
+        return this.bornAt + this._existenceTime;
+    }
+
+    get currentDate() {
+        return new Date(this.currentTime);
     }
 
     /**
@@ -55,6 +65,10 @@ class Thing {
      * @returns {Universe}
      */
     get universe() {
+
+        if (this instanceof Universe) {
+            return this;
+        }
 
         if (this._universe) {
             return this._universe;
