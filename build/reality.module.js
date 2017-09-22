@@ -42,15 +42,37 @@ const Gly = 1000000000 * ly;
  * Astronomical unit
  * @type {number}
  */
-const AU = 1.496 * 10 ** 11;
+const AU = 149597870700;
+
+/**
+ * parsec
+ * @type {number}
+ */
+const pc = 206264.806247096 * AU;
+
+/**
+ * kiloparsec
+ * @type {number}
+ */
+const kpc = 1000 * pc;
+
+/**
+ * megaparsec
+ * @type {number}
+ */
+const Mpc = 1000000 * pc;
+
+/**
+ * gigaparsec
+ * @type {number}
+ */
+const Gpc = 1000000000 * pc;
 
 /**
  * The gravitational constant
  * @type {number}
  */
 const G = 6.67384e-11;
-
-//export const EARTH_ANGULAR_VELOCITY_METRES_PER_SECOND = 1.990986 * 10 ** -7;
 
 var units = Object.freeze({
 	c: c,
@@ -60,6 +82,10 @@ var units = Object.freeze({
 	Mly: Mly,
 	Gly: Gly,
 	AU: AU,
+	pc: pc,
+	kpc: kpc,
+	Mpc: Mpc,
+	Gpc: Gpc,
 	G: G
 });
 

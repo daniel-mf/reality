@@ -42,12 +42,34 @@ export const Gly = 1000000000 * ly;
  * Astronomical unit
  * @type {number}
  */
-export const AU = 1.496 * 10 ** 11;
+export const AU = 149597870700;
+
+/**
+ * parsec
+ * @type {number}
+ */
+export const pc = 206264.806247096 * AU;
+
+/**
+ * kiloparsec
+ * @type {number}
+ */
+export const kpc = 1000 * pc;
+
+/**
+ * megaparsec
+ * @type {number}
+ */
+export const Mpc = 1000000 * pc;
+
+/**
+ * gigaparsec
+ * @type {number}
+ */
+export const Gpc = 1000000000 * pc;
 
 /**
  * The gravitational constant
  * @type {number}
  */
 export const G = 6.67384e-11;
-
-//export const EARTH_ANGULAR_VELOCITY_METRES_PER_SECOND = 1.990986 * 10 ** -7;
