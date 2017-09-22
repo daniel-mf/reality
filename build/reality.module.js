@@ -843,6 +843,7 @@ class CSSRenderer extends Renderer {
 
     constructor() {
         super(...arguments);
+        this.zoomHelper = {};
         this.pan = {x: 0, y: 0, z: 0};
         this.initialScale = this.scale;
         this.showZoomHelper = false;
@@ -891,7 +892,7 @@ class CSSRenderer extends Renderer {
                         ((this.pan[n] * this.absoluteScale)
                             + ((thing.position[n]) * (spaceSize[n] ? 1 : 0) * this.scale)
                             + ((spaceSize[n]) * this.absoluteScale / 2) - (
-                                (thing.size[n] * (spaceSize[n] ? 1 : 0) * this.scale) * 2
+                                (thing.size[n] * (spaceSize[n] ? 1 : 0) * this.scale)// * 2
                             ) / 2)
                     )
                 ) + 'px').join(',')) + ')',
@@ -932,6 +933,15 @@ class CSSRenderer extends Renderer {
                 this.pan.x += dragSpeed.x / (this.scale / this.initialScale);
                 this.pan.y += dragSpeed.y / (this.scale / this.initialScale);
 
+                if (this.showZoomHelper) {
+                    if (this.zoomHelper.element) {
+                        this.zoomHelper.element.style.left = (this.pan.x * this.absoluteScale)
+                            - (this.zoomHelper.x * this.absoluteScale) + 'px';
+                        this.zoomHelper.element.style.top = (this.pan.y * this.absoluteScale)
+                            - (this.zoomHelper.y * this.absoluteScale) + 'px';
+                    }
+                }
+
                 lastDrag = {x: e.clientX, y: e.clientY};
 
             }
@@ -948,8 +958,7 @@ class CSSRenderer extends Renderer {
 
     setupZoomControl() {
 
-        let pam = {},
-            zoomTimer;
+        let zoomTimer;
 
         this.renderDomTarget.addEventListener('mousewheel', e => {
 
@@ -959,25 +968,24 @@ class CSSRenderer extends Renderer {
 
             if (!this.zooming) {
                 if (this.showZoomHelper) {
-                    if (!pam.element) {
-                        console.log(pam.element);
+                    if (!this.zoomHelper.element) {
                         let pamElement = document.createElement('div');
-                        pamElement.classList.add('pam');
+                        pamElement.classList.add('zoomHelper');
                         this.renderDomTarget.appendChild(pamElement);
-                        pam.element = pamElement;
+                        this.zoomHelper.element = pamElement;
                     } else {
-                        pam.element.classList.remove('gone');
+                        this.zoomHelper.element.classList.remove('gone');
                     }
-                    pam.scale = this.absoluteScale;
-                    pam.x = this.pan.x;
-                    pam.y = this.pan.y;
+                    this.zoomHelper.scale = this.absoluteScale;
+                    this.zoomHelper.x = this.pan.x;
+                    this.zoomHelper.y = this.pan.y;
                 }
                 this.zooming = true;
             }
 
             zoomTimer = setTimeout(() => {
-                if (pam.element) {
-                    pam.element.classList.add('gone');
+                if (this.zoomHelper.element) {
+                    this.zoomHelper.element.classList.add('gone');
                 }
                 this.zooming = false;
             }, 200);
@@ -992,14 +1000,17 @@ class CSSRenderer extends Renderer {
 
             const scaleChange = (this.absoluteScale / previousScale) - 1;
 
-            this.pan.x -= ((e.clientX / spaceSize.width) * (spaceSize.width / (spaceSize.width * this.absoluteScale))) * spaceSize.width * scaleChange;
-            this.pan.y -= ((e.clientY / spaceSize.height) * (spaceSize.height / (spaceSize.height * this.absoluteScale))) * spaceSize.height * scaleChange;
+            this.pan.x -= ((e.clientX / spaceSize.width)
+                * (spaceSize.width / (spaceSize.width * this.absoluteScale))) * spaceSize.width * scaleChange;
+
+            this.pan.y -= ((e.clientY / spaceSize.height)
+                * (spaceSize.height / (spaceSize.height * this.absoluteScale))) * spaceSize.height * scaleChange;
 
             if (this.showZoomHelper) {
-                pam.element.style.width = (spaceSize.width * (this.absoluteScale / pam.scale)) + 'px';
-                pam.element.style.height = (spaceSize.height * (this.absoluteScale / pam.scale)) + 'px';
-                pam.element.style.left = (this.pan.x * this.absoluteScale) - (pam.x * this.absoluteScale) + 'px';
-                pam.element.style.top = (this.pan.y * this.absoluteScale) - (pam.y * this.absoluteScale) + 'px';
+                this.zoomHelper.element.style.width = (spaceSize.width * (this.absoluteScale / this.zoomHelper.scale)) + 'px';
+                this.zoomHelper.element.style.height = (spaceSize.height * (this.absoluteScale / this.zoomHelper.scale)) + 'px';
+                this.zoomHelper.element.style.left = (this.pan.x * this.absoluteScale) - (this.zoomHelper.x * this.absoluteScale) + 'px';
+                this.zoomHelper.element.style.top = (this.pan.y * this.absoluteScale) - (this.zoomHelper.y * this.absoluteScale) + 'px';
             }
 
             //updateScaleSample();

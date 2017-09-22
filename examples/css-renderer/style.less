@@ -9,28 +9,30 @@ body {
   font-family: monospace;
   text-rendering: geometricPrecision;
   font-size: 11px;
-}
 
-.body {
-  position: absolute;
-  background: #555;
-  color: white;
-  transform-style: preserve-3d;
-  transform-origin: top left;
-  border-radius: 50%;
-  overflow: visible;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pam {
-  position: absolute;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 2px yellow;
-  opacity: .4;
-  transition: opacity .5s ease;
-  &.gone {
-    opacity: 0;
+  .zoomHelper {
+    position: absolute;
+    box-shadow: inset 0 0 0 2px yellow;
+    opacity: .4;
+    transition: opacity .5s ease;
+    pointer-events: none;
+    &.gone {
+      transition-duration: 2s;
+      opacity: 0;
+    }
   }
+
+  .body {
+    position: absolute;
+    background: #555;
+    color: white;
+    transform-style: preserve-3d;
+    transform-origin: top left;
+    border-radius: 50%;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
 }

@@ -10,7 +10,18 @@ body {
   text-rendering: geometricPrecision;
   font-size: 11px;
 }
-.body {
+body .zoomHelper {
+  position: absolute;
+  box-shadow: inset 0 0 0 2px yellow;
+  opacity: .4;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+body .zoomHelper.gone {
+  transition-duration: 2s;
+  opacity: 0;
+}
+body .body {
   position: absolute;
   background: #555;
   color: white;
@@ -21,14 +32,4 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.pam {
-  position: absolute;
-  pointer-events: none;
-  box-shadow: inset 0 0 0 2px yellow;
-  opacity: .4;
-  transition: opacity .5s ease;
-}
-.pam.gone {
-  opacity: 0;
 }
