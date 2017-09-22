@@ -1,4 +1,5 @@
 import {Concreta} from "./Concreta";
+import {G} from "./lib/Units";
 
 class Body extends Concreta {
     constructor({mass = 0, size, name}) {
@@ -16,6 +17,15 @@ class Body extends Concreta {
 
     get isMassive() {
         return !!this.mass;
+    }
+
+    /**
+     * Newtonian gravitational potential
+     * TODO Is it right?
+     * @returns {number}
+     */
+    get graviationalPotential() {
+        return 2 * G * this.mass;
     }
 
     get volume() {
