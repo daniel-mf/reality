@@ -5,12 +5,12 @@ import {Gravitation} from "./laws/Gravitation";
 import {Motion} from "./laws/Motion";
 import {Space} from "./Space";
 import {EARTH, MOON, SUN} from "./extra/data/milkyWay/solarSystem";
-import {AU} from "./lib/Units";
 
 function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     const universe = bigBang();
 
     const sun = new universe.Body({
+        name: 'Sun',
         mass: SUN.MASS,
         size: new universe.Vector({
             x: SUN.RADIUS * 2,
@@ -20,6 +20,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     });
 
     const earth = new universe.Body({
+        name: 'Earth',
         mass: EARTH.MASS,
         size: new universe.Vector({
             x: EARTH.RADIUS * 2,
@@ -27,13 +28,12 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: EARTH.RADIUS * 2
         }),
         position: new universe.Vector({
-            z: AU,
+            x: EARTH.DISTANCE_TO_SUN,
         }),
-        velocity: new universe.Vector({
-            x: 900,
-        })
+        velocity: new universe.Vector({})
     });
 
+    /*
     const moon = new universe.Body({
         mass: MOON.MASS,
         size: new universe.Vector({
@@ -46,10 +46,11 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: AU - MOON.DISTANCE_TO.EARTH,
         })
     });
+    */
 
     universe.add(sun);
     universe.add(earth);
-    universe.add(moon);
+    //universe.add(moon);
 
     return universe;
 }

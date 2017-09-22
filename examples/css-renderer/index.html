@@ -4,51 +4,20 @@
     <meta charset="UTF-8">
     <title>Reality CSS Example</title>
     <script src="../../build/reality.js"></script>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            perspective: 1000px;
-        }
-
-        .body {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: red;
-            transform-style: preserve-3d;
-            transform-origin: center center;
-            border-radius: 50%;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <script type="text/javascript">
 
-    const universe = Reality.bigBang(),
-        renderer = new Reality.CSSRenderer();
+    const universe = Reality.createSolarSystem(),
+        renderer = new Reality.CSSRenderer({scale: 9.603479305635991e-8});
 
-    universe.add(
-        new universe.Body({
-            mass: 1000000000000000000,
-            position: {x: 450, y: 350},
-            velocity: {x: 0, y: 0},
-        }),
-        new universe.Body({
-            mass: 100000000000000000,
-            position: {x: 700, y: 500},
-            velocity: {x: 350, y: -300},
-        }),
-        new universe.Body({
-            mass: 10,
-            position: {x: 720, y: 520},
-            velocity: {x: 0, y: 50},
-        })
-    );
+    renderer.setupDragControl();
+    renderer.setupZoomControl();
+
+    renderer.showZoomHelper = true;
 
     universe.happen();
-
     renderer.renders(universe);
 
 </script>

@@ -20,13 +20,17 @@ class Universe extends Concreta {
             constructor(values = {}) {
 
                 if (universe.space) {
-                    for (const {name: dimensionName} of universe.space.physicalDimensions) {
+                    const orderedValues = {};
+                    const physDim = universe.space.physicalDimensions;
+                    for (const {name: dimensionName} of physDim) {
                         if (!values.hasOwnProperty(dimensionName)) {
-                            values[dimensionName] = 0;
+                            orderedValues[dimensionName] = 0;
+                        } else {
+                            orderedValues[dimensionName] = values[dimensionName];
                         }
                     }
+                    values = orderedValues;
                 }
-
                 super(values);
             }
         };

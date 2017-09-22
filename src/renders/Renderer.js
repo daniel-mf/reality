@@ -6,6 +6,12 @@ function start() {
     if (!renderingStarted) {
         renderingStarted = true;
 
+        window.addEventListener('resize', function () {
+            for (const renderer of renderers) {
+                renderer.ready && renderer.onResize();
+            }
+        });
+
         let lastTime = 0;
         requestAnimationFrame(function render(time) {
             requestAnimationFrame(render);
@@ -20,11 +26,17 @@ function start() {
 
 class Renderer {
 
-    constructor(options = {}) {
+    constructor({metre = 100, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
         this.ready = false;
 
-        this.metre = 100;
-        this.pixelsPerMetre = options.pixelsPerMetre || 100;
+        this.metre = metre;
+        this.pixelsPerMetre = pixelsPerMetre;
+        this.initialScale = scale;
+        this.scale = scale;
+        this.absoluteScale = 1;
+        this.lastScaleChange = 0;
+
+        this.renderDomTarget = renderDomTarget || document.body;
 
         renderers.push(this);
         start();
@@ -39,11 +51,19 @@ class Renderer {
         this.ready = this.setup();
     }
 
+    scaled(number) {
+        return (number / this.metre * this.pixelsPerMetre) * this.scale;
+    }
+
     setup() {
         return true;
     }
 
     update(delta, time) {
+
+    }
+
+    onResize() {
 
     }
 

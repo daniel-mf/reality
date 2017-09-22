@@ -12,7 +12,7 @@ class Motion extends Law {
                 const thingEventDelta = thing.getSelfEventDelta(delta);
 
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * thingEventDelta)
+                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * thingEventDelta);
                 }
             }
         }

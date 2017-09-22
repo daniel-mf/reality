@@ -1,8 +1,10 @@
 import {Concreta} from "./Concreta";
 
 class Body extends Concreta {
-    constructor({mass = 0, size}) {
+    constructor({mass = 0, size, name}) {
         super();
+
+        this.name = name;
 
         this.mass = mass;
 

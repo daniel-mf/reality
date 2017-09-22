@@ -38,6 +38,20 @@ class Vector {
         yield* this.values.entries();
     }
 
+    each(callback) {
+        for (const n of this.keys) {
+            callback(this[n], n);
+        }
+    }
+
+    mapTo(callback) {
+        const to = [];
+        for (const n of this.keys) {
+            to.push(callback(this[n], n));
+        }
+        return to;
+    }
+
     reduce(callback) {
         return this.values.length ? this.values.reduce(callback) : 0;
     }

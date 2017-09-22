@@ -239,6 +239,20 @@ class Vector {
         yield* this.values.entries();
     }
 
+    each(callback) {
+        for (const n of this.keys) {
+            callback(this[n], n);
+        }
+    }
+
+    mapTo(callback) {
+        const to = [];
+        for (const n of this.keys) {
+            to.push(callback(this[n], n));
+        }
+        return to;
+    }
+
     reduce(callback) {
         return this.values.length ? this.values.reduce(callback) : 0;
     }
@@ -387,8 +401,10 @@ class Vector {
 }
 
 class Body extends Concreta {
-    constructor({mass = 0, size}) {
+    constructor({mass = 0, size, name}) {
         super();
+
+        this.name = name;
 
         this.mass = mass;
 
@@ -457,13 +473,17 @@ class Universe extends Concreta {
             constructor(values = {}) {
 
                 if (universe.space) {
-                    for (const {name: dimensionName} of universe.space.physicalDimensions) {
+                    const orderedValues = {};
+                    const physDim = universe.space.physicalDimensions;
+                    for (const {name: dimensionName} of physDim) {
                         if (!values.hasOwnProperty(dimensionName)) {
-                            values[dimensionName] = 0;
+                            orderedValues[dimensionName] = 0;
+                        } else {
+                            orderedValues[dimensionName] = values[dimensionName];
                         }
                     }
+                    values = orderedValues;
                 }
-
                 super(values);
             }
         };
@@ -532,6 +552,9 @@ class Universe extends Concreta {
         return this._space || (this._space = this.things.find(thing => thing instanceof Space));
     }
 
+    /**
+     * @param thing
+     */
     set observer(thing) {
         if (thing instanceof Thing) {
             this._observer = thing;
@@ -540,6 +563,9 @@ class Universe extends Concreta {
         }
     }
 
+    /**
+     * @returns {Thing}
+     */
     get observer() {
         return this._observer || null;
     }
@@ -584,7 +610,7 @@ class Gravitation extends Law {
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)) * particleEventDelta; //should apply delta?
+                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G)); //should apply delta?
                         }
 
                     } else {
@@ -616,6 +642,8 @@ class Time extends Dimension {
         this._elapsedTime = 0;
 
         this.speed = 1;
+
+        this.relativeToSpace = true;
 
     }
 
@@ -670,28 +698,19 @@ class Motion extends Law {
 const SUN = {
     MASS: 1.98855 * 10 ** 30,
     RADIUS: 696000000,
-    POSITION: {x: 0, y: 0, z: 0}
 };
 
 const EARTH = {
     MASS: 5.9736e+24,
     RADIUS: 6378000.137,
-    POSITION: {x: AU, y: 0, z: 0}
-};
-
-const MOON = {
-    MASS: 7.347550162055999e+22,
-    RADIUS: 1738000,
-    POSITION: {x: 0, y: 0, z: 0}, //relative to earth?
-    DISTANCE_TO: {
-        EARTH: 384400000
-    }
+    DISTANCE_TO_SUN: AU
 };
 
 function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     const universe = bigBang();
 
     const sun = new universe.Body({
+        name: 'Sun',
         mass: SUN.MASS,
         size: new universe.Vector({
             x: SUN.RADIUS * 2,
@@ -701,6 +720,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     });
 
     const earth = new universe.Body({
+        name: 'Earth',
         mass: EARTH.MASS,
         size: new universe.Vector({
             x: EARTH.RADIUS * 2,
@@ -708,13 +728,12 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: EARTH.RADIUS * 2
         }),
         position: new universe.Vector({
-            z: AU,
+            x: EARTH.DISTANCE_TO_SUN,
         }),
-        velocity: new universe.Vector({
-            x: 900,
-        })
+        velocity: new universe.Vector({})
     });
 
+    /*
     const moon = new universe.Body({
         mass: MOON.MASS,
         size: new universe.Vector({
@@ -727,10 +746,11 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: AU - MOON.DISTANCE_TO.EARTH,
         })
     });
+    */
 
     universe.add(sun);
     universe.add(earth);
-    universe.add(moon);
+    //universe.add(moon);
 
     return universe;
 }
@@ -756,6 +776,12 @@ function start() {
     if (!renderingStarted) {
         renderingStarted = true;
 
+        window.addEventListener('resize', function () {
+            for (const renderer of renderers) {
+                renderer.ready && renderer.onResize();
+            }
+        });
+
         let lastTime = 0;
         requestAnimationFrame(function render(time) {
             requestAnimationFrame(render);
@@ -770,11 +796,17 @@ function start() {
 
 class Renderer {
 
-    constructor(options = {}) {
+    constructor({metre = 100, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
         this.ready = false;
 
-        this.metre = 100;
-        this.pixelsPerMetre = options.pixelsPerMetre || 100;
+        this.metre = metre;
+        this.pixelsPerMetre = pixelsPerMetre;
+        this.initialScale = scale;
+        this.scale = scale;
+        this.absoluteScale = 1;
+        this.lastScaleChange = 0;
+
+        this.renderDomTarget = renderDomTarget || document.body;
 
         renderers.push(this);
         start();
@@ -789,11 +821,19 @@ class Renderer {
         this.ready = this.setup();
     }
 
+    scaled(number) {
+        return (number / this.metre * this.pixelsPerMetre) * this.scale;
+    }
+
     setup() {
         return true;
     }
 
     update(delta, time) {
+
+    }
+
+    onResize() {
 
     }
 
@@ -801,22 +841,171 @@ class Renderer {
 
 class CSSRenderer extends Renderer {
 
+    constructor() {
+        super(...arguments);
+        this.pan = {x: 0, y: 0, z: 0};
+        this.initialScale = this.scale;
+        this.showZoomHelper = false;
+        this.zooming = false;
+    }
+
     setup() {
+
         for (const thing of this.universe.bodies) {
-            const el = document.createElement('div');
-            el.classList.add('body');
-            thing.render = el;
-            document.body.appendChild(el);
+            this.renderDomTarget.appendChild(
+                this.createBodyElement(thing)
+            );
         }
+
         return true;
     }
 
+    createBodyElement(body) {
+        const element = document.createElement('div');
+        element.classList.add('body');
+        element.textContent = body.name;
+        element.style.width = this.scaled(body.size.x) + 'px';
+        element.style.height = this.scaled(body.size.y) + 'px';
+        body.render = element;
+        return element;
+    }
+
     update(delta, time) {
+
+        let spaceSize = this.renderDomTarget.getBoundingClientRect();
+        spaceSize = {
+            x: spaceSize.width,
+            y: spaceSize.height,
+            z: 0
+        };
+
         for (const thing of this.universe.bodies) {
-            thing.render.style.transform = 'translate3d(' + (
-                thing.position.values.map(v => (v / this.metre * this.pixelsPerMetre
-                ) + 'px').join(',')) + ')';
+
+            //alternative to scaling to avoid scaling bug on chrome
+            thing.render.style.width = (thing.size.x * this.scale) + 'px';
+            thing.render.style.height = (thing.size.y * this.scale) + 'px';
+
+            thing.render.style.transform = [
+                'translate3d(' + (thing.position.mapTo((v, n) => (
+                    Math.round(
+                        ((this.pan[n] * this.absoluteScale)
+                            + ((thing.position[n]) * (spaceSize[n] ? 1 : 0) * this.scale)
+                            + ((spaceSize[n]) * this.absoluteScale / 2) - (
+                                (thing.size[n] * (spaceSize[n] ? 1 : 0) * this.scale) * 2
+                            ) / 2)
+                    )
+                ) + 'px').join(',')) + ')',
+
+                //scaling has some rendering bugs on chrome
+                //'scale(' + this.absoluteScale + ')',
+
+            ].join(' ');
         }
+    }
+
+    setupDragControl() {
+
+        let dragActive = false,
+            dragStart = null,
+            lastDrag = null,
+            dragSpeed = {x: 0, y: 0};
+
+
+        this.renderDomTarget.addEventListener('mousedown', e => {
+            dragSpeed = {x: 0, y: 0};
+            dragActive = true;
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (dragActive) {
+
+                if (!dragStart) {
+                    dragStart = {x: e.clientX, y: e.clientY};
+                    this.renderDomTarget.classList.add('dragging');
+                }
+
+                if (lastDrag) {
+                    dragSpeed.x = e.clientX - lastDrag.x;
+                    dragSpeed.y = e.clientY - lastDrag.y;
+                }
+
+                this.pan.x += dragSpeed.x / (this.scale / this.initialScale);
+                this.pan.y += dragSpeed.y / (this.scale / this.initialScale);
+
+                lastDrag = {x: e.clientX, y: e.clientY};
+
+            }
+        });
+
+        window.addEventListener('mouseup', e => {
+            dragActive = false;
+            dragStart = null;
+            lastDrag = null;
+            this.renderDomTarget.classList.remove('dragging');
+        });
+
+    }
+
+    setupZoomControl() {
+
+        let pam = {},
+            zoomTimer;
+
+        this.renderDomTarget.addEventListener('mousewheel', e => {
+
+            e.preventDefault();
+
+            clearTimeout(zoomTimer);
+
+            if (!this.zooming) {
+                if (this.showZoomHelper) {
+                    if (!pam.element) {
+                        console.log(pam.element);
+                        let pamElement = document.createElement('div');
+                        pamElement.classList.add('pam');
+                        this.renderDomTarget.appendChild(pamElement);
+                        pam.element = pamElement;
+                    } else {
+                        pam.element.classList.remove('gone');
+                    }
+                    pam.scale = this.absoluteScale;
+                    pam.x = this.pan.x;
+                    pam.y = this.pan.y;
+                }
+                this.zooming = true;
+            }
+
+            zoomTimer = setTimeout(() => {
+                if (pam.element) {
+                    pam.element.classList.add('gone');
+                }
+                this.zooming = false;
+            }, 200);
+
+            const spaceSize = this.renderDomTarget.getBoundingClientRect();
+
+            const change = e.deltaY / 100,
+                previousScale = this.absoluteScale;
+
+            this.scale -= change * this.scale * 0.1;
+            this.absoluteScale -= change * this.absoluteScale * 0.1;
+
+            const scaleChange = (this.absoluteScale / previousScale) - 1;
+
+            this.pan.x -= ((e.clientX / spaceSize.width) * (spaceSize.width / (spaceSize.width * this.absoluteScale))) * spaceSize.width * scaleChange;
+            this.pan.y -= ((e.clientY / spaceSize.height) * (spaceSize.height / (spaceSize.height * this.absoluteScale))) * spaceSize.height * scaleChange;
+
+            if (this.showZoomHelper) {
+                pam.element.style.width = (spaceSize.width * (this.absoluteScale / pam.scale)) + 'px';
+                pam.element.style.height = (spaceSize.height * (this.absoluteScale / pam.scale)) + 'px';
+                pam.element.style.left = (this.pan.x * this.absoluteScale) - (pam.x * this.absoluteScale) + 'px';
+                pam.element.style.top = (this.pan.y * this.absoluteScale) - (pam.y * this.absoluteScale) + 'px';
+            }
+
+            //updateScaleSample();
+
+        });
+
     }
 
 }
