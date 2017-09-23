@@ -77,6 +77,7 @@ body {
   background-color: rgba(255, 255, 255, 0.15);
   padding: 2px 4px;
   border-radius: 3px;
+  white-space: nowrap;
 }
 #world .body:hover .info {
   transition-delay: 0s;

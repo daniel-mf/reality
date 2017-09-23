@@ -40,6 +40,20 @@
 
     renderer.showZoomHelper = true;
 
+    //bonus
+    universe.add(
+        new universe.Body({
+            name: 'VY Canis Majoris',
+            mass: 3.381 * 10 ** 31,
+            position: new universe.Vector({x: 3.816 * Reality.UNIT.ly}),
+            size: new universe.Vector({
+                x: 988300000000 * 2,
+                y: 988300000000 * 2,
+                z: 988300000000 * 2
+            })
+        })
+    );
+
     universe.happen();
     renderer.renders(universe);
 
