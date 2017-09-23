@@ -9,6 +9,22 @@ body {
   font-family: monospace;
   text-rendering: geometricPrecision;
   font-size: 11px;
+}
+
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  &.no-labels {
+    .body {
+      .name, .info {
+        display: none;
+      }
+    }
+  }
 
   .zoomHelper {
     position: absolute;
@@ -39,7 +55,7 @@ body {
       font-size: .85em;
       white-space: nowrap;
       position: absolute;
-      margin-top: 25px;
+      margin-top: 37px;
       width: 310px;
       overflow: hidden;
       padding: 6px;
@@ -70,4 +86,30 @@ body {
 
   }
 
+}
+
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, .05);
+  z-index: 1;
+  color: #bbb;
+  opacity:.6;
+  .control {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .detail,
+    .description {
+      padding: 10px;
+      width: 200px;
+    }
+
+    input {
+      width: 100%;
+    }
+  }
 }

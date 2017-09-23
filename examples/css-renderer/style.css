@@ -10,18 +10,29 @@ body {
   text-rendering: geometricPrecision;
   font-size: 11px;
 }
-body .zoomHelper {
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+#world.no-labels .body .name,
+#world.no-labels .body .info {
+  display: none;
+}
+#world .zoomHelper {
   position: absolute;
   box-shadow: inset 0 0 0 2px yellow;
   opacity: .4;
   transition: opacity .5s ease;
   pointer-events: none;
 }
-body .zoomHelper.gone {
+#world .zoomHelper.gone {
   transition-duration: 2s;
   opacity: 0;
 }
-body .body {
+#world .body {
   position: absolute;
   background: #555;
   color: white;
@@ -33,12 +44,12 @@ body .body {
   align-items: center;
   justify-content: center;
 }
-body .body .info {
+#world .body .info {
   pointer-events: none;
   font-size: .85em;
   white-space: nowrap;
   position: absolute;
-  margin-top: 25px;
+  margin-top: 37px;
   width: 310px;
   overflow: hidden;
   padding: 6px;
@@ -50,15 +61,38 @@ body .body .info {
   transition-property: opacity, transform;
   transition-delay: .3s;
 }
-body .body .name {
+#world .body .name {
   display: inline-block;
   line-height: 100%;
   background-color: rgba(255, 255, 255, 0.15);
   padding: 2px 4px;
   border-radius: 3px;
 }
-body .body:hover .info {
+#world .body:hover .info {
   transition-delay: 0s;
   transform: translateY(0);
   opacity: 1;
+}
+.controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.05);
+  z-index: 1;
+  color: #bbb;
+  opacity: .6;
+}
+.controls .control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.controls .control .detail,
+.controls .control .description {
+  padding: 10px;
+  width: 200px;
+}
+.controls .control input {
+  width: 100%;
 }

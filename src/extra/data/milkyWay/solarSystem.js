@@ -8,7 +8,10 @@ const SUN = {
 const EARTH = {
     MASS: 5.9736e+24,
     RADIUS: 6378000.137,
-    DISTANCE_TO_SUN: AU
+    DISTANCE_TO_SUN: AU,
+    VELOCITY: {
+        y: 30000 //Random guess...
+    }
 };
 
 const MOON = {

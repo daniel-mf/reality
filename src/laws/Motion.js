@@ -10,7 +10,7 @@ class Motion extends Law {
             if (thing instanceof this.universe.Body) {
                 //console.log(thing.eventDelta);
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName]);
+                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * this.eventDelta);
                 }
             }
         }

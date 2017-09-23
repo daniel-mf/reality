@@ -457,8 +457,17 @@ class Body extends Concreta {
         return !!this.mass;
     }
 
+    /**
+     * Newtonian gravitational potential
+     * TODO Is it right?
+     * @returns {number}
+     */
+    get graviationalPotential() {
+        return 2 * G * this.mass;
+    }
+
     get volume() {
-        return this.size.reduce((c, v) => c * v);
+        return this.size.reduce((c$$1, v) => c$$1 * v);
     }
 
     get density() {
@@ -676,7 +685,7 @@ class Gravitation extends Law {
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * this.eventDelta)); //should apply delta?
+                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * particle.eventDelta)); //should apply delta?
                         }
 
                     } else {
@@ -748,7 +757,7 @@ class Motion extends Law {
             if (thing instanceof this.universe.Body) {
                 //console.log(thing.eventDelta);
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName]);
+                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * this.eventDelta);
                 }
             }
         }
@@ -765,7 +774,10 @@ const SUN = {
 const EARTH = {
     MASS: 5.9736e+24,
     RADIUS: 6378000.137,
-    DISTANCE_TO_SUN: AU
+    DISTANCE_TO_SUN: AU,
+    VELOCITY: {
+        y: 30000 //Random guess...
+    }
 };
 
 function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
@@ -792,7 +804,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         position: new universe.Vector({
             x: EARTH.DISTANCE_TO_SUN,
         }),
-        velocity: new universe.Vector({})
+        velocity: new universe.Vector(EARTH.VELOCITY)
     });
 
     /*

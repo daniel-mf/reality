@@ -7,10 +7,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="world"></div>
+<div class="controls">
+    <div class="control">
+        <div class="description">Time:</div>
+        <input id="time-range" type="range" min="1" max="10000000" step="1" value="1">
+        <div class="detail">
+            1x
+        </div>
+    </div>
+</div>
+</div>
 <script type="text/javascript">
 
     const universe = Reality.createSolarSystem(),
-        renderer = new Reality.CSSRenderer({scale: 9.603479305635991e-8});
+        renderer = new Reality.CSSRenderer({
+            scale: 9.603479305635991e-8,
+            renderDomTarget: document.getElementById('world')
+        });
 
     renderer.setupDragControl();
     renderer.setupZoomControl();
@@ -19,6 +33,20 @@
 
     universe.happen();
     renderer.renders(universe);
+
+    let showLabels = true;
+    window.addEventListener('keydown', function (e) {
+        if (String(e.key).toLowerCase() === 'l') {
+            e.preventDefault();
+            renderer.renderDomTarget.classList[showLabels ? 'add' : 'remove']('no-labels');
+            showLabels = !showLabels;
+        }
+    });
+
+    document.getElementById('time-range').addEventListener('input', function (e) {
+        universe.things[0].things[0].speed = this.value;
+        this.nextElementSibling.textContent = this.value + 'x';
+    });
 
 </script>
 </body>

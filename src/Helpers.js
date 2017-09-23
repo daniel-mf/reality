@@ -30,7 +30,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         position: new universe.Vector({
             x: EARTH.DISTANCE_TO_SUN,
         }),
-        velocity: new universe.Vector({})
+        velocity: new universe.Vector(EARTH.VELOCITY)
     });
 
     /*
