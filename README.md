@@ -4,4 +4,4 @@ Low-level reality framework
 ### Purpose ###
 Play with physics (for now)
 
-[Live demo](http://danielmf.xyz/project/reality/examples/css-renderer/index.html)
+[Live demo](https://rawgit.com/daniel-mf/reality/master/examples/css-renderer/index.html)
