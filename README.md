@@ -2,4 +2,4 @@ Low-level reality framework
 ===========================
 
 ### Purpose ###
-Fun.
+Play with physics (for now)
