@@ -1,3 +1,7 @@
+@ui-opacity: .7;
+@ui-background-color: rgba(255, 255, 255, .1);
+@ui-color: #f77;
+
 body {
   margin: 0;
   height: 100vh;
@@ -9,6 +13,7 @@ body {
   font-family: monospace;
   text-rendering: geometricPrecision;
   font-size: 11px;
+  color: @ui-color;
 }
 
 #world {
@@ -28,7 +33,7 @@ body {
 
   .zoomHelper {
     position: absolute;
-    box-shadow: inset 0 0 0 2px yellow;
+    box-shadow: inset 0 0 0 2px red;
     opacity: .4;
     transition: opacity .5s ease;
     pointer-events: none;
@@ -46,9 +51,20 @@ body {
     transform-origin: top left;
     border-radius: 50%;
     overflow: visible;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
+
+    &.target {
+      background: #933;
+      .name {
+        background-color: rgba(255, 100, 100, .4);
+      }
+    }
+
+    &.visible {
+      display: flex;
+    }
 
     .info {
       pointer-events: none;
@@ -93,10 +109,10 @@ body {
   bottom: 0;
   left: 0;
   padding: 10px;
-  background-color: rgba(255, 255, 255, .05);
+  background-color: @ui-background-color;
   z-index: 1;
-  color: #bbb;
-  opacity:.6;
+  opacity: @ui-opacity;
+  border-radius: 0 8px 0 0;
   .control {
     display: flex;
     flex-direction: row;
@@ -112,4 +128,53 @@ body {
       width: 100%;
     }
   }
+}
+
+.tips {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  z-index: 99;
+
+  &:hover {
+    nav {
+      opacity: 1;
+    }
+    .icon {
+      border-radius: 0;
+    }
+  }
+
+  nav {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    opacity: 0;
+    white-space: nowrap;
+    background-color: @ui-background-color;
+    pointer-events: none;
+    border-radius: 0 8px 8px 0;
+
+    transition: opacity .2s ease;
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      li {
+        padding: 10px;
+      }
+    }
+  }
+
+  .icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: @ui-background-color;
+    border-radius: 0 8px 0 0;
+  }
+
 }

@@ -14,39 +14,39 @@ class Gravitation extends Law {
 
     happen() {
 
-        for (const particle of this.universe.bodies) {
+        for (const body of this.universe.bodies) {
 
-            if (!particle.isMassive) {
+            if (!body.isMassive) {
                 continue;
             }
 
-            if (particle instanceof Body) {
+            if (body instanceof Body) {
 
-                for (const otherParticle of this.universe.bodies) {
+                for (const otherBody of this.universe.bodies) {
 
-                    if (!otherParticle.isMassive || particle === otherParticle) {
+                    if (!otherBody.isMassive || body === otherBody) {
                         continue;
                     }
 
-                    const differences = otherParticle.position.sub(particle.position);
-                    const distanceSquared = otherParticle.position.distanceToSquared(particle.position);
-                    const distance = otherParticle.position.distanceTo(particle.position);
+                    const differences = otherBody.position.sub(body.position);
+                    const distanceSquared = otherBody.position.distanceToSquared(body.position);
+                    const distance = otherBody.position.distanceTo(body.position);
 
-                    if (distance > 10 + 10) {
+                    if (distance > body.size.x + otherBody.size.x) {
 
-                        const totalForce = (otherParticle.mass / distanceSquared);
+                        const totalForce = (otherBody.mass / distanceSquared);
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * particle.eventDelta)); //should apply delta?
+                            body.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
                         }
 
                     } else {
                         for (const [n] of differences) {
-                            const velocity = (particle.mass * particle.velocity[n]
-                                + otherParticle.mass * otherParticle.velocity[n]) / (particle.mass + otherParticle.mass);
-                            particle.velocity[n] = velocity;
-                            otherParticle.velocity[n] = velocity;
+                            const velocity = (body.mass * body.velocity[n]
+                                + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);
+                            body.velocity[n] = velocity;
+                            otherBody.velocity[n] = velocity;
 
                         }
                     }

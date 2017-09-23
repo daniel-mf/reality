@@ -1,5 +1,6 @@
 import {Renderer} from "./Renderer";
 
+//still 2d for now
 
 class CSSRenderer extends Renderer {
 
@@ -12,12 +13,25 @@ class CSSRenderer extends Renderer {
         this.zooming = false;
     }
 
+    startOrbiting(body) {
+        this.universe.target = body;
+        console.log(`orbiting: ${body.name}`);
+    }
+
     setup() {
 
+        let index = 1;
         for (const thing of this.universe.bodies) {
             this.renderDomTarget.appendChild(
                 this.createBodyElement(thing)
             );
+            thing.render.style.zIndex = index++;
+        }
+
+        if (this.orbitControlsActive) {
+            for (const body of this.universe.bodies) {
+                body.render.addEventListener('dblclick', e => this.startOrbiting(body));
+            }
         }
 
         return true;
@@ -39,40 +53,107 @@ class CSSRenderer extends Renderer {
     update(delta, time) {
 
         let spaceSize = this.renderDomTarget.getBoundingClientRect();
+
         spaceSize = {
             x: spaceSize.width,
             y: spaceSize.height,
             z: 0
         };
 
-        for (const thing of this.universe.bodies) {
+        if (!this.initialSpaceSize) {
+            this.initialSpaceSize = spaceSize;
+        }
 
-            thing.render.querySelector('.info').innerHTML = `
-            <div>(x) Position: ${thing.position.x}</div>
-            <div>(x) Velocity: ${thing.velocity.x}</div>
-            <div>Time Dilatation at core: ${-(1-thing.eventDeltaDilatation) * 100}%</div>
-            <div>Date at core: ${thing.currentDate}</div>
-            `;
+        for (const body of this.universe.bodies) {
 
-            //alternative to scaling to avoid scaling bug on chrome
-            thing.render.style.width = (thing.size.x * this.scale) + 'px';
-            thing.render.style.height = (thing.size.y * this.scale) + 'px';
+            let shouldUpdateRender = true;
 
-            thing.render.style.transform = [
-                'translate3d(' + (thing.position.mapTo((v, n) => (
-                    Math.round(
-                        ((this.pan[n] * this.absoluteScale)
-                            + ((thing.position[n]) * (spaceSize[n] ? 1 : 0) * this.scale)
-                            + ((spaceSize[n]) * this.absoluteScale / 2) - (
-                                (thing.size[n] * (spaceSize[n] ? 1 : 0) * this.scale)// * 2
-                            ) / 2)
-                    )
-                ) + 'px').join(',')) + ')',
+            const toWidth = (body.size.x * this.scale);
+            const toHeight = (body.size.y * this.scale);
 
-                //scaling has some rendering bugs on chrome
-                //'scale(' + this.absoluteScale + ')',
+            const position = body.position.mapTo((v, n) =>
+                (
+                    (this.pan[n] * this.absoluteScale)
+                    + ((body.position[n]) * (this.initialSpaceSize[n] ? 1 : 0) * this.scale)
+                    + ((this.initialSpaceSize[n]) * this.absoluteScale / 2) - (
+                        (body.size[n] * (this.initialSpaceSize[n] ? 1 : 0) * this.scale)// * 2
+                    ) / 2
+                )
+            );
 
-            ].join(' ');
+            if (body.render.currentPosition) {
+                shouldUpdateRender =
+                    body.render.currentPosition[0] + toWidth > 0
+                    && body.render.currentPosition[1] + toHeight > 0
+                    && body.render.currentPosition[0] < spaceSize.x
+                    && body.render.currentPosition[1] < spaceSize.y;
+            }
+
+            body.render.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
+
+            if (shouldUpdateRender) {
+
+                body.render.classList[this.universe.target === body ? 'add' : 'remove']('target');
+
+                body.render.querySelector('.info').innerHTML = `
+                    <div>(x) Position: ${body.position.x}</div>
+                    <div>(x) Velocity: ${body.velocity.x}</div>
+                    <div>Time Dilatation at core: ${-(1 - body.eventDeltaDilatation) * 100}%</div>
+                    <div>Date at core: ${body.currentDate}</div>
+                `;
+
+                //alternative to scaling to avoid scaling bug on chrome
+                body.render.style.width = toWidth + 'px';
+                body.render.style.height = toHeight + 'px';
+
+                body.render.style.transform = ['translate3d(' + (position.map(v => v + 'px').join(',')) + ')',
+                    //scaling has some rendering bugs on chrome
+                    //'scale(' + this.absoluteScale + ')',
+                ].join(' ');
+
+            }
+
+            body.render.currentWidth = toWidth;
+            body.render.currentHeight = toHeight;
+            body.render.currentPosition = position;
+
+        }
+
+        this.removeHiddenSmallerBodies();
+
+    }
+
+    removeHiddenSmallerBodies() {
+        let bodyInvisible = false;
+        for (const body of this.universe.bodies) {
+
+            if (!body.render.classList.contains('visible')) {
+                continue;
+            }
+
+            for (const otherBody of this.universe.bodies) {
+                if (body !== otherBody) {
+
+                    const tooCloseX = Math.abs(
+                        (body.render.currentPosition[0] + (body.render.currentWidth / 2))
+                        - (otherBody.render.currentPosition[0] + (otherBody.render.currentWidth / 2))
+                        ) < 20,
+                        tooCloseY = Math.abs(
+                            (body.render.currentPosition[1] + (body.render.currentHeight / 2))
+                            - (otherBody.render.currentPosition[1] + (otherBody.render.currentHeight / 2))
+                        ) < 20;
+
+                    bodyInvisible = tooCloseX && tooCloseY && body.volume < otherBody.volume;
+
+                    body.render.classList[bodyInvisible ? 'remove' : 'add']('visible');
+
+                    if (bodyInvisible) {
+                        break;
+                    }
+
+                }
+            }
+
         }
     }
 
@@ -191,6 +272,43 @@ class CSSRenderer extends Renderer {
 
     }
 
+    setupOrbitControl() {
+
+        this.orbitControlsActive = true;
+
+        const getBiggestInScreen = () => {
+            let volume = 0, selected = null;
+            for (const body of this.universe.bodies) {
+                if (body.render.classList.contains('visible')) {
+                    if (body.volume > volume) {
+                        volume = body.volume;
+                        selected = body;
+                    }
+                }
+            }
+            return selected;
+        };
+
+        window.addEventListener('keydown', e => {
+            if (e.key.toLowerCase() !== 'o') return;
+
+            e.preventDefault();
+
+            const body = getBiggestInScreen();
+
+            if (this.universe.target === body) {
+                console.log(`orbiting off`);
+                this.universe.target = null;
+                return;
+            }
+
+            if (body) {
+                this.startOrbiting(body);
+            }
+
+        });
+
+    }
 }
 
 export {CSSRenderer};

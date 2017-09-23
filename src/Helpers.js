@@ -18,6 +18,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: SUN.RADIUS * 2
         })
     });
+    universe.add(sun);
 
     const earth = new universe.Body({
         name: 'Earth',
@@ -32,9 +33,10 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         }),
         velocity: new universe.Vector(EARTH.VELOCITY)
     });
+    universe.add(earth);
 
-    /*
     const moon = new universe.Body({
+        name: 'Moon',
         mass: MOON.MASS,
         size: new universe.Vector({
             x: MOON.RADIUS * 2,
@@ -42,17 +44,27 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: MOON.RADIUS * 2
         }),
         position: new universe.Vector({
-            x: 7000000,
-            z: AU - MOON.DISTANCE_TO.EARTH,
-        })
+            x: MOON.DISTANCE_TO_SUN,
+        }),
+        velocity: new universe.Vector(MOON.VELOCITY)
     });
-    */
+    universe.add(moon);
 
-    universe.add(sun);
-    universe.add(earth);
-    //universe.add(moon);
+    const ball = new universe.Body({
+        name: 'ball',
+        mass: 10,
+        size: new universe.Vector({
+            x: 10,
+            y: 10,
+            z: 10,
+        }),
+        position: new universe.Vector({
+            x: EARTH.DISTANCE_TO_SUN - EARTH.RADIUS - 10,
+        }),
+    });
+    //universe.add(ball);
 
-    universe.observer = earth;
+    universe.observer = ball;
 
     return universe;
 }

@@ -123,6 +123,14 @@ class Universe extends Concreta {
         return this._observer || null;
     }
 
+    set target(body) {
+        this._target = body;
+    }
+
+    get target() {
+        return this._target;
+    }
+
 }
 
 export {Universe};

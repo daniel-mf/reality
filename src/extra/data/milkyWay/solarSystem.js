@@ -17,7 +17,10 @@ const EARTH = {
 const MOON = {
     MASS: 7.347550162055999e+22,
     RADIUS: 1738000,
-    DISTANCE_TO_SUN: AU - 384400000
+    DISTANCE_TO_SUN: AU - 384400000,
+    VELOCITY: {
+        y: 29000 //Random guess...
+    }
 };
 
 export {SUN, EARTH, MOON};

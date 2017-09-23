@@ -3,14 +3,24 @@ import {Law} from "./Law";
 class Motion extends Law {
 
     happen() {
-
         const physicalDimensions = this.universe.space.physicalDimensions;
 
-        for (const thing of this.universe.things) {
-            if (thing instanceof this.universe.Body) {
-                //console.log(thing.eventDelta);
+        const targetChange = new this.universe.Vector();
+
+        if (this.universe.target) {
+            const body = this.universe.target;
+            for (const {name: dimensionName} of physicalDimensions) {
+                targetChange[dimensionName] = -(body.velocity[dimensionName] * body.eventDelta);
+            }
+        }
+
+        for (const body of this.universe.bodies) {
+            if (this.universe.target !== body) {
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * this.eventDelta);
+                    body.position[dimensionName] =
+                        targetChange[dimensionName]
+                        + body.position[dimensionName]
+                        + (body.velocity[dimensionName] * body.eventDelta);
                 }
             }
         }

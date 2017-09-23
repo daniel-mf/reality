@@ -647,6 +647,14 @@ class Universe extends Concreta {
         return this._observer || null;
     }
 
+    set target(body) {
+        this._target = body;
+    }
+
+    get target() {
+        return this._target;
+    }
+
 }
 
 class Gravitation extends Law {
@@ -661,39 +669,39 @@ class Gravitation extends Law {
 
     happen() {
 
-        for (const particle of this.universe.bodies) {
+        for (const body of this.universe.bodies) {
 
-            if (!particle.isMassive) {
+            if (!body.isMassive) {
                 continue;
             }
 
-            if (particle instanceof Body) {
+            if (body instanceof Body) {
 
-                for (const otherParticle of this.universe.bodies) {
+                for (const otherBody of this.universe.bodies) {
 
-                    if (!otherParticle.isMassive || particle === otherParticle) {
+                    if (!otherBody.isMassive || body === otherBody) {
                         continue;
                     }
 
-                    const differences = otherParticle.position.sub(particle.position);
-                    const distanceSquared = otherParticle.position.distanceToSquared(particle.position);
-                    const distance = otherParticle.position.distanceTo(particle.position);
+                    const differences = otherBody.position.sub(body.position);
+                    const distanceSquared = otherBody.position.distanceToSquared(body.position);
+                    const distance = otherBody.position.distanceTo(body.position);
 
-                    if (distance > 10 + 10) {
+                    if (distance > body.size.x + otherBody.size.x) {
 
-                        const totalForce = (otherParticle.mass / distanceSquared);
+                        const totalForce = (otherBody.mass / distanceSquared);
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            particle.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * particle.eventDelta)); //should apply delta?
+                            body.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
                         }
 
                     } else {
                         for (const [n] of differences) {
-                            const velocity = (particle.mass * particle.velocity[n]
-                                + otherParticle.mass * otherParticle.velocity[n]) / (particle.mass + otherParticle.mass);
-                            particle.velocity[n] = velocity;
-                            otherParticle.velocity[n] = velocity;
+                            const velocity = (body.mass * body.velocity[n]
+                                + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);
+                            body.velocity[n] = velocity;
+                            otherBody.velocity[n] = velocity;
 
                         }
                     }
@@ -750,14 +758,24 @@ class Time extends Dimension {
 class Motion extends Law {
 
     happen() {
-
         const physicalDimensions = this.universe.space.physicalDimensions;
 
-        for (const thing of this.universe.things) {
-            if (thing instanceof this.universe.Body) {
-                //console.log(thing.eventDelta);
+        const targetChange = new this.universe.Vector();
+
+        if (this.universe.target) {
+            const body = this.universe.target;
+            for (const {name: dimensionName} of physicalDimensions) {
+                targetChange[dimensionName] = -(body.velocity[dimensionName] * body.eventDelta);
+            }
+        }
+
+        for (const body of this.universe.bodies) {
+            if (this.universe.target !== body) {
                 for (const {name: dimensionName} of physicalDimensions) {
-                    thing.position[dimensionName] = thing.position[dimensionName] + (thing.velocity[dimensionName] * this.eventDelta);
+                    body.position[dimensionName] =
+                        targetChange[dimensionName]
+                        + body.position[dimensionName]
+                        + (body.velocity[dimensionName] * body.eventDelta);
                 }
             }
         }
@@ -780,6 +798,15 @@ const EARTH = {
     }
 };
 
+const MOON = {
+    MASS: 7.347550162055999e+22,
+    RADIUS: 1738000,
+    DISTANCE_TO_SUN: AU - 384400000,
+    VELOCITY: {
+        y: 29000 //Random guess...
+    }
+};
+
 function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     const universe = bigBang();
 
@@ -792,6 +819,7 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: SUN.RADIUS * 2
         })
     });
+    universe.add(sun);
 
     const earth = new universe.Body({
         name: 'Earth',
@@ -806,9 +834,10 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         }),
         velocity: new universe.Vector(EARTH.VELOCITY)
     });
+    universe.add(earth);
 
-    /*
     const moon = new universe.Body({
+        name: 'Moon',
         mass: MOON.MASS,
         size: new universe.Vector({
             x: MOON.RADIUS * 2,
@@ -816,17 +845,27 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
             z: MOON.RADIUS * 2
         }),
         position: new universe.Vector({
-            x: 7000000,
-            z: AU - MOON.DISTANCE_TO.EARTH,
-        })
+            x: MOON.DISTANCE_TO_SUN,
+        }),
+        velocity: new universe.Vector(MOON.VELOCITY)
     });
-    */
+    universe.add(moon);
 
-    universe.add(sun);
-    universe.add(earth);
-    //universe.add(moon);
+    const ball = new universe.Body({
+        name: 'ball',
+        mass: 10,
+        size: new universe.Vector({
+            x: 10,
+            y: 10,
+            z: 10,
+        }),
+        position: new universe.Vector({
+            x: EARTH.DISTANCE_TO_SUN - EARTH.RADIUS - 10,
+        }),
+    });
+    //universe.add(ball);
 
-    universe.observer = earth;
+    universe.observer = ball;
 
     return universe;
 }
@@ -915,6 +954,8 @@ class Renderer {
 
 }
 
+//still 2d for now
+
 class CSSRenderer extends Renderer {
 
     constructor() {
@@ -926,12 +967,25 @@ class CSSRenderer extends Renderer {
         this.zooming = false;
     }
 
+    startOrbiting(body) {
+        this.universe.target = body;
+        console.log(`orbiting: ${body.name}`);
+    }
+
     setup() {
 
+        let index = 1;
         for (const thing of this.universe.bodies) {
             this.renderDomTarget.appendChild(
                 this.createBodyElement(thing)
             );
+            thing.render.style.zIndex = index++;
+        }
+
+        if (this.orbitControlsActive) {
+            for (const body of this.universe.bodies) {
+                body.render.addEventListener('dblclick', e => this.startOrbiting(body));
+            }
         }
 
         return true;
@@ -953,40 +1007,107 @@ class CSSRenderer extends Renderer {
     update(delta, time) {
 
         let spaceSize = this.renderDomTarget.getBoundingClientRect();
+
         spaceSize = {
             x: spaceSize.width,
             y: spaceSize.height,
             z: 0
         };
 
-        for (const thing of this.universe.bodies) {
+        if (!this.initialSpaceSize) {
+            this.initialSpaceSize = spaceSize;
+        }
 
-            thing.render.querySelector('.info').innerHTML = `
-            <div>(x) Position: ${thing.position.x}</div>
-            <div>(x) Velocity: ${thing.velocity.x}</div>
-            <div>Time Dilatation at core: ${-(1-thing.eventDeltaDilatation) * 100}%</div>
-            <div>Date at core: ${thing.currentDate}</div>
-            `;
+        for (const body of this.universe.bodies) {
 
-            //alternative to scaling to avoid scaling bug on chrome
-            thing.render.style.width = (thing.size.x * this.scale) + 'px';
-            thing.render.style.height = (thing.size.y * this.scale) + 'px';
+            let shouldUpdateRender = true;
 
-            thing.render.style.transform = [
-                'translate3d(' + (thing.position.mapTo((v, n) => (
-                    Math.round(
-                        ((this.pan[n] * this.absoluteScale)
-                            + ((thing.position[n]) * (spaceSize[n] ? 1 : 0) * this.scale)
-                            + ((spaceSize[n]) * this.absoluteScale / 2) - (
-                                (thing.size[n] * (spaceSize[n] ? 1 : 0) * this.scale)// * 2
-                            ) / 2)
-                    )
-                ) + 'px').join(',')) + ')',
+            const toWidth = (body.size.x * this.scale);
+            const toHeight = (body.size.y * this.scale);
 
-                //scaling has some rendering bugs on chrome
-                //'scale(' + this.absoluteScale + ')',
+            const position = body.position.mapTo((v, n) =>
+                (
+                    (this.pan[n] * this.absoluteScale)
+                    + ((body.position[n]) * (this.initialSpaceSize[n] ? 1 : 0) * this.scale)
+                    + ((this.initialSpaceSize[n]) * this.absoluteScale / 2) - (
+                        (body.size[n] * (this.initialSpaceSize[n] ? 1 : 0) * this.scale)// * 2
+                    ) / 2
+                )
+            );
 
-            ].join(' ');
+            if (body.render.currentPosition) {
+                shouldUpdateRender =
+                    body.render.currentPosition[0] + toWidth > 0
+                    && body.render.currentPosition[1] + toHeight > 0
+                    && body.render.currentPosition[0] < spaceSize.x
+                    && body.render.currentPosition[1] < spaceSize.y;
+            }
+
+            body.render.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
+
+            if (shouldUpdateRender) {
+
+                body.render.classList[this.universe.target === body ? 'add' : 'remove']('target');
+
+                body.render.querySelector('.info').innerHTML = `
+                    <div>(x) Position: ${body.position.x}</div>
+                    <div>(x) Velocity: ${body.velocity.x}</div>
+                    <div>Time Dilatation at core: ${-(1 - body.eventDeltaDilatation) * 100}%</div>
+                    <div>Date at core: ${body.currentDate}</div>
+                `;
+
+                //alternative to scaling to avoid scaling bug on chrome
+                body.render.style.width = toWidth + 'px';
+                body.render.style.height = toHeight + 'px';
+
+                body.render.style.transform = ['translate3d(' + (position.map(v => v + 'px').join(',')) + ')',
+                    //scaling has some rendering bugs on chrome
+                    //'scale(' + this.absoluteScale + ')',
+                ].join(' ');
+
+            }
+
+            body.render.currentWidth = toWidth;
+            body.render.currentHeight = toHeight;
+            body.render.currentPosition = position;
+
+        }
+
+        this.removeHiddenSmallerBodies();
+
+    }
+
+    removeHiddenSmallerBodies() {
+        let bodyInvisible = false;
+        for (const body of this.universe.bodies) {
+
+            if (!body.render.classList.contains('visible')) {
+                continue;
+            }
+
+            for (const otherBody of this.universe.bodies) {
+                if (body !== otherBody) {
+
+                    const tooCloseX = Math.abs(
+                        (body.render.currentPosition[0] + (body.render.currentWidth / 2))
+                        - (otherBody.render.currentPosition[0] + (otherBody.render.currentWidth / 2))
+                        ) < 20,
+                        tooCloseY = Math.abs(
+                            (body.render.currentPosition[1] + (body.render.currentHeight / 2))
+                            - (otherBody.render.currentPosition[1] + (otherBody.render.currentHeight / 2))
+                        ) < 20;
+
+                    bodyInvisible = tooCloseX && tooCloseY && body.volume < otherBody.volume;
+
+                    body.render.classList[bodyInvisible ? 'remove' : 'add']('visible');
+
+                    if (bodyInvisible) {
+                        break;
+                    }
+
+                }
+            }
+
         }
     }
 
@@ -1105,6 +1226,43 @@ class CSSRenderer extends Renderer {
 
     }
 
+    setupOrbitControl() {
+
+        this.orbitControlsActive = true;
+
+        const getBiggestInScreen = () => {
+            let volume = 0, selected = null;
+            for (const body of this.universe.bodies) {
+                if (body.render.classList.contains('visible')) {
+                    if (body.volume > volume) {
+                        volume = body.volume;
+                        selected = body;
+                    }
+                }
+            }
+            return selected;
+        };
+
+        window.addEventListener('keydown', e => {
+            if (e.key.toLowerCase() !== 'o') return;
+
+            e.preventDefault();
+
+            const body = getBiggestInScreen();
+
+            if (this.universe.target === body) {
+                console.log(`orbiting off`);
+                this.universe.target = null;
+                return;
+            }
+
+            if (body) {
+                this.startOrbiting(body);
+            }
+
+        });
+
+    }
 }
 
 class ThreeRenderer extends Renderer {

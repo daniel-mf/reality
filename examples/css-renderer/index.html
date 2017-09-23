@@ -9,14 +9,22 @@
 <body>
 <div id="world"></div>
 <div class="controls">
+
+    <div class="tips">
+        <nav>
+            <ul>
+                <li>Press "o" to follow the biggest body in the screen</li>
+                <li>Double-click a body to start follow it</li>
+            </ul>
+        </nav>
+        <div class="icon">?</div>
+    </div>
+
     <div class="control">
         <div class="description">Time:</div>
         <input id="time-range" type="range" min="1" max="10000000" step="1" value="1">
-        <div class="detail">
-            1x
-        </div>
+        <div class="detail">1x</div>
     </div>
-</div>
 </div>
 <script type="text/javascript">
 
@@ -28,6 +36,7 @@
 
     renderer.setupDragControl();
     renderer.setupZoomControl();
+    renderer.setupOrbitControl();
 
     renderer.showZoomHelper = true;
 
