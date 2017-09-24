@@ -4,7 +4,7 @@ import {Time} from "./dimensions/Time";
 import {Gravitation} from "./laws/Gravitation";
 import {Motion} from "./laws/Motion";
 import {Space} from "./Space";
-import {EARTH, MOON, SUN} from "./extra/data/milkyWay/solarSystem";
+import {EARTH, MARS, MOON, SUN} from "./extra/data/milkyWay/solarSystem";
 
 function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
     const universe = bigBang();
@@ -49,6 +49,21 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         velocity: new universe.Vector(MOON.VELOCITY)
     });
     universe.add(moon);
+
+    const mars = new universe.Body({
+        name: 'Mars',
+        mass: MARS.MASS,
+        size: new universe.Vector({
+            x: MARS.RADIUS * 2,
+            y: MARS.RADIUS * 2,
+            z: MARS.RADIUS * 2
+        }),
+        position: new universe.Vector({
+            x: MARS.DISTANCE_TO_SUN,
+        }),
+        velocity: new universe.Vector(MARS.VELOCITY)
+    });
+    universe.add(mars);
 
     const ball = new universe.Body({
         name: 'ball',

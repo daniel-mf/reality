@@ -13,7 +13,8 @@
     <div class="tips">
         <nav>
             <ul>
-                <li>Press "o" to follow the biggest body in the screen</li>
+                <li>Press "O" to follow the biggest body in the screen</li>
+                <li>Press "L" to toggle data</li>
                 <li>Double-click a body to start following it</li>
             </ul>
         </nav>
@@ -28,24 +29,29 @@
 </div>
 <script type="text/javascript">
 
-    const universe = Reality.createSolarSystem(),
-        renderer = new Reality.CSSRenderer({
-            scale: 9.603479305635991e-8,
-            renderDomTarget: document.getElementById('world')
-        });
+    const {createSolarSystem, CSSRenderer, UNIT: {ly}} = Reality;
 
-    renderer.setupDragControl();
-    renderer.setupZoomControl();
-    renderer.setupOrbitControl();
+    const universe = createSolarSystem();
 
-    renderer.showZoomHelper = true;
+    const renderer = new CSSRenderer({
+        scale: 9.603479305635991e-8,
+
+        //scale: 1.8527692173675116e-9,
+        //metre: 1,
+
+        renderDomTarget: document.getElementById('world')
+    });
+
+    renderer.plugin(new CSSRenderer.DragControl());
+    renderer.plugin(new CSSRenderer.ZoomControl({helper: true, scaleSample: true}));
+    renderer.plugin(new CSSRenderer.TargetControl());
 
     //bonus
     universe.add(
         new universe.Body({
             name: 'VY Canis Majoris',
             mass: 3.381 * 10 ** 31,
-            position: new universe.Vector({x: 3.816 * Reality.UNIT.ly}),
+            position: new universe.Vector({x: 3.816 * ly}),
             size: new universe.Vector({
                 x: 988300000000 * 2,
                 y: 988300000000 * 2,

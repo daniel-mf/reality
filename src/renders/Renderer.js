@@ -27,6 +27,12 @@ function start() {
 class Renderer {
 
     constructor({metre = 100, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
+
+        /**
+         * @type {RendererPlugin[]}
+         */
+        this.plugins = [];
+
         this.ready = false;
 
         this.metre = metre;
@@ -59,12 +65,44 @@ class Renderer {
         return true;
     }
 
+    * bodiesForSetup() {
+        for (const body of this.universe.bodies) {
+            yield body;
+            for (const plugin of this.plugins) {
+                plugin.onAfterBodySetup(body);
+            }
+        }
+    }
+
     update(delta, time) {
 
     }
 
     onResize() {
 
+    }
+
+    /**
+     * Adds a plugin
+     * @param rendererPlugin
+     * @return {Renderer}
+     */
+    plugin(rendererPlugin) {
+        rendererPlugin.renderer = this;
+        this.plugins.push(rendererPlugin);
+        return this;
+    }
+
+    /**
+     * @param {RendererPlugin} Class
+     * @return {RendererPlugin}
+     */
+    getPlugin(Class) {
+        for (const plugin of this.plugins) {
+            if (plugin instanceof Class) {
+                return plugin;
+            }
+        }
     }
 
 }
