@@ -26,7 +26,7 @@ function start() {
 
 class Renderer {
 
-    constructor({metre = 100, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
+    constructor({metre = 1, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
 
         /**
          * @type {RendererPlugin[]}
@@ -40,7 +40,6 @@ class Renderer {
         this.initialScale = scale;
         this.scale = scale;
         this.absoluteScale = 1;
-        this.lastScaleChange = 0;
 
         this.renderDomTarget = renderDomTarget || document.body;
 

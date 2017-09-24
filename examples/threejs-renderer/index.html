@@ -15,28 +15,16 @@
 </head>
 <body>
 <script type="text/javascript">
-    const universe = Reality.bigBang(),
-        renderer = new Reality.ThreeRenderer();
 
-    universe.add(
-        new universe.Body({
-            mass: 1,
-            position: {x: Reality.UNIT.AU, y: 0},
-            velocity: {x: 0, y: 0, z: 0}, //1.9909859999999998e-7
-        })
-    );
+    const {createSolarSystem, ThreeJSRenderer} = Reality;
 
-    universe.add(
-        new universe.Body({
-            mass: 1.98855e+30,
-            position: {x: 300, y: 300},
-            velocity: {x: 0, y: 0, z: 0},
-        })
-    );
+    const universe = createSolarSystem(),
+        renderer = new ThreeJSRenderer();
 
     universe.happen();
 
     renderer.renders(universe);
+
 </script>
 </body>
 </html>

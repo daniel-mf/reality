@@ -10,7 +10,7 @@ export {PhysicalDimension} from './dimensions/PhysicalDimension';
 export {Vector} from './lib/Vector';
 export * from './Helpers';
 export {CSSRenderer} from './renders/CSSRenderer/CSSRenderer';
-export {ThreeRenderer} from './renders/ThreeJS';
+export {ThreeJSRenderer} from './renders/ThreeJSRenderer/ThreeJSRenderer';
 
 export const UNIT = units;
 

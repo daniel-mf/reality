@@ -941,7 +941,7 @@ var units = Object.freeze({
 
 	class Renderer {
 
-	    constructor({metre = 100, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
+	    constructor({metre = 1, pixelsPerMetre = 100, scale = 1, renderDomTarget} = {}) {
 
 	        /**
 	         * @type {RendererPlugin[]}
@@ -955,7 +955,6 @@ var units = Object.freeze({
 	        this.initialScale = scale;
 	        this.scale = scale;
 	        this.absoluteScale = 1;
-	        this.lastScaleChange = 0;
 
 	        this.renderDomTarget = renderDomTarget || document.body;
 
@@ -1435,7 +1434,7 @@ var units = Object.freeze({
 	CSSRenderer.DragControl = DragControl;
 	CSSRenderer.ZoomControl = ZoomControl;
 
-	class ThreeRenderer extends Renderer {
+	class ThreeJSRenderer extends Renderer {
 
 	    constructor() {
 	        super(...arguments);
@@ -1453,33 +1452,19 @@ var units = Object.freeze({
 
 	        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, AU * 2);
 	        this.camera.position.z = AU;
-	        //this.camera.position.x = EARTH.RADIUS * 2;
-	        //this.camera.position.y = EARTH.RADIUS * 60;
-	        //this.camera.rotation.x = -90 * Math.PI / 180;
-	        //window.C = this.camera;
 
 	        this.renderer = new THREE.WebGLRenderer();
 	        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-	        for (const thing of this.universe.bodies) {
-	            console.log(thing.size.x, thing.size.y, thing.size.z);
-	            thing.render = new THREE.Mesh(
-	                new THREE.CubeGeometry(thing.size.x, thing.size.y, thing.size.z),
+	        for (const body of this.bodiesForSetup()) {
+	            body.render = new THREE.Mesh(
+	                new THREE.CubeGeometry(body.size.x, body.size.y, body.size.z),
 	                new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true}) //, side:THREE.BackSide
 	            );
-	            this.scene.add(thing.render);
+	            this.scene.add(body.render);
 	        }
 
 	        document.body.appendChild(this.renderer.domElement);
-
-	        const renderModel = new THREE.RenderPass(this.scene, this.camera),
-	            effectFilm = new THREE.FilmPass(0.35, 0.75, 2048, false);
-
-	        effectFilm.renderToScreen = true;
-
-	        this.composer = new THREE.EffectComposer(this.renderer);
-	        this.composer.addPass(renderModel);
-	        this.composer.addPass(effectFilm);
 
 	        return super.setup();
 
@@ -1495,8 +1480,7 @@ var units = Object.freeze({
 	            );
 	        }
 
-	        this.composer.render(delta);
-	        //this.renderer.render(this.scene, this.camera);
+	        this.renderer.render(this.scene, this.camera);
 	    }
 
 	}
@@ -1517,7 +1501,7 @@ var units = Object.freeze({
 	exports.PhysicalDimension = PhysicalDimension;
 	exports.Vector = Vector;
 	exports.CSSRenderer = CSSRenderer;
-	exports.ThreeRenderer = ThreeRenderer;
+	exports.ThreeJSRenderer = ThreeJSRenderer;
 	exports.bigBang = bigBang;
 	exports.createSolarSystem = createSolarSystem;
 
