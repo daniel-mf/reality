@@ -23,7 +23,7 @@ class CSSRenderer extends Renderer {
             body.render.style.zIndex = index++;
         }
 
-        return true;
+        return super.setup();
     }
 
     createBodyElement(body) {

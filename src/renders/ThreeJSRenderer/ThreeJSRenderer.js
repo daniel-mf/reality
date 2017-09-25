@@ -1,6 +1,7 @@
 import {Renderer} from "../Renderer";
 import {RealityException} from "../../lib/RealityException";
 import {AU} from "../../lib/Units";
+import {FlyControls} from "./FlyControls";
 
 class ThreeJSRenderer extends Renderer {
 
@@ -47,6 +48,10 @@ class ThreeJSRenderer extends Renderer {
         if (!this.camera) {
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, this.scaled(AU * 2));
             this.camera.position.z = this.scaled(AU);
+
+            console.log(AU);
+            console.log(this.scaled(AU));
+
         }
 
         if (!this.renderer) {
@@ -55,6 +60,12 @@ class ThreeJSRenderer extends Renderer {
         }
 
         for (const body of this.bodiesForSetup()) {
+
+            if (body.name === 'Sun') {
+                //console.log(body.position.x);
+                //console.log(this.scaled(body.position.x));
+            }
+
             body.render = new THREE.Mesh(
                 new THREE.CubeGeometry(
                     this.scaled(body.size.x),
@@ -74,11 +85,11 @@ class ThreeJSRenderer extends Renderer {
 
     update(delta, time) {
 
-        for (const thing of this.universe.bodies) {
-            thing.render.position.set(
-                this.scaled(thing.position.x),
-                this.scaled(thing.position.y),
-                this.scaled(thing.position.z)
+        for (const body of this.universe.bodies) {
+            body.render.position.set(
+                this.scaled(body.position.x),
+                this.scaled(body.position.y),
+                this.scaled(body.position.z)
             );
         }
 
@@ -86,5 +97,7 @@ class ThreeJSRenderer extends Renderer {
     }
 
 }
+
+ThreeJSRenderer.FlyControls = FlyControls;
 
 export {ThreeJSRenderer};

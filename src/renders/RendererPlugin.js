@@ -1,6 +1,7 @@
 class RendererPlugin {
 
     constructor() {
+        this.ready = false;
     }
 
     /**
@@ -15,11 +16,10 @@ class RendererPlugin {
      */
     set renderer(renderer) {
         this._renderer = renderer;
-        this.setup();
     }
 
     setup() {
-
+        return true;
     }
 
     /**
@@ -27,6 +27,12 @@ class RendererPlugin {
      */
     get universe() {
         return this.renderer.universe;
+    }
+
+    update(delta) {
+        if (!this.ready) {
+            this.ready = this.setup();
+        }
     }
 
     onAfterBodySetup(body) {

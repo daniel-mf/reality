@@ -20,21 +20,15 @@
     const {createSolarSystem, ThreeJSRenderer} = Reality;
 
     const universe = createSolarSystem(),
-        renderer = new ThreeJSRenderer();
+        renderer = new ThreeJSRenderer({
+            pixelsPerMetre: 1
+        });
+
+    renderer.plugin(new ThreeJSRenderer.FlyControls());
 
     universe.happen();
 
     renderer.renders(universe);
-
-    const controls = new THREE.FlyControls(renderer.camera);
-
-    controls.movementSpeed = 10000000000;
-    controls.domElement = document.body;
-    controls.rollSpeed = Math.PI / 2400;
-    controls.autoForward = false;
-    controls.dragToLook = false;
-
-    renderer.onAfterUpdate(delta => controls.update(delta));
 
 </script>
 </body>

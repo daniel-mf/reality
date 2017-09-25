@@ -924,15 +924,28 @@ function start() {
         let lastTime = 0;
         requestAnimationFrame(function render(time) {
             requestAnimationFrame(render);
+
             for (const renderer of renderers) {
+
                 if (renderer.ready) {
-                    const delta = time - lastTime;
+
+                    const delta = (time - lastTime) / 1000;
+
                     renderer.update(delta, time);
+
+                    for (const plugin of renderer.plugins) {
+                        if (plugin.ready) {
+                            plugin.update(delta);
+                        }
+                    }
+
                     for (const eventHandler of renderer._onAfterUpdateHandlers) {
                         eventHandler(delta);
                     }
+
                 }
             }
+
             lastTime = time;
         });
 
@@ -978,6 +991,9 @@ class Renderer {
     }
 
     setup() {
+        for (const plugin of this.plugins) {
+            plugin.ready = plugin.setup();
+        }
         return true;
     }
 
@@ -1025,11 +1041,43 @@ class Renderer {
         }
     }
 
+    /**
+     * TODO get a better name for this method
+     * @param {Number} value
+     * @returns {Number}
+     */
+    scaleString(value) {
+
+        if (value > Gpc) {
+            value = (value / Gpc).toLocaleString() + ' Gpc';
+        } else if (value > Mpc) {
+            value = (value / Mpc).toLocaleString() + ' Mpc';
+        } else if (value > kpc) {
+            value = (value / kpc).toLocaleString() + ' kpc';
+        } else if (value > pc) {
+            value = (value / pc).toLocaleString() + ' pc';
+        } else if (value > ly * .1) {
+            value = (value / ly).toLocaleString() + ' ly';
+        } else if (value >= AU * .1) {
+            value = (value / AU).toLocaleString() + ' AU';
+        } else if (value > 1000) {
+            value = (value / 1000).toLocaleString() + ' km';
+        } else if (value > 1) {
+            value = value.toLocaleString() + ' mt';
+        } else {
+            value = value.toLocaleString() + ' cm';
+        }
+
+        return value;
+
+    }
+
 }
 
 class RendererPlugin {
 
     constructor() {
+        this.ready = false;
     }
 
     /**
@@ -1044,11 +1092,10 @@ class RendererPlugin {
      */
     set renderer(renderer) {
         this._renderer = renderer;
-        this.setup();
     }
 
     setup() {
-
+        return true;
     }
 
     /**
@@ -1056,6 +1103,12 @@ class RendererPlugin {
      */
     get universe() {
         return this.renderer.universe;
+    }
+
+    update(delta) {
+        if (!this.ready) {
+            this.ready = this.setup();
+        }
     }
 
     onAfterBodySetup(body) {
@@ -1310,7 +1363,7 @@ class CSSRenderer extends Renderer {
             body.render.style.zIndex = index++;
         }
 
-        return true;
+        return super.setup();
     }
 
     createBodyElement(body) {
@@ -1440,6 +1493,50 @@ CSSRenderer.TargetControl = TargetControl;
 CSSRenderer.DragControl = DragControl;
 CSSRenderer.ZoomControl = ZoomControl;
 
+class FlyControls extends RendererPlugin {
+
+    setup() {
+
+        const controls = new THREE.FlyControls(this.renderer.camera);
+
+        this.movementDelta = 0;
+
+        controls.movementSpeed = 0;
+        controls.domElement = this.renderer.renderDomTarget;
+        controls.rollSpeed = Math.PI / 2000;
+        controls.autoForward = false;
+        controls.dragToLook = false;
+
+        this.controls = controls;
+
+        window.addEventListener('mousewheel', e => {
+
+            e.preventDefault();
+
+            //controls.movementSpeed += (e.deltaY / 10) * (controls.movementSpeed || 1) * 0.01;
+
+            //if (controls.movementSpeed < 0) {
+            //    controls.movementSpeed = 0;
+            // }
+
+            /*console.log(
+                this.renderer.scaleString(this.renderer.scaled(controls.movementSpeed)),
+            );*/
+
+        });
+
+        return true;
+
+    }
+
+    update(delta) {
+        // Y U NOT WORK T_T
+        this.controls.movementSpeed = this.renderer.scaled(ly) * delta;
+        this.controls.update(delta);
+    }
+
+}
+
 class ThreeJSRenderer extends Renderer {
 
     constructor() {
@@ -1485,6 +1582,10 @@ class ThreeJSRenderer extends Renderer {
         if (!this.camera) {
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, this.scaled(AU * 2));
             this.camera.position.z = this.scaled(AU);
+
+            console.log(AU);
+            console.log(this.scaled(AU));
+
         }
 
         if (!this.renderer) {
@@ -1493,6 +1594,12 @@ class ThreeJSRenderer extends Renderer {
         }
 
         for (const body of this.bodiesForSetup()) {
+
+            if (body.name === 'Sun') {
+                //console.log(body.position.x);
+                //console.log(this.scaled(body.position.x));
+            }
+
             body.render = new THREE.Mesh(
                 new THREE.CubeGeometry(
                     this.scaled(body.size.x),
@@ -1512,11 +1619,11 @@ class ThreeJSRenderer extends Renderer {
 
     update(delta, time) {
 
-        for (const thing of this.universe.bodies) {
-            thing.render.position.set(
-                this.scaled(thing.position.x),
-                this.scaled(thing.position.y),
-                this.scaled(thing.position.z)
+        for (const body of this.universe.bodies) {
+            body.render.position.set(
+                this.scaled(body.position.x),
+                this.scaled(body.position.y),
+                this.scaled(body.position.z)
             );
         }
 
@@ -1524,6 +1631,8 @@ class ThreeJSRenderer extends Renderer {
     }
 
 }
+
+ThreeJSRenderer.FlyControls = FlyControls;
 
 const UNIT = units;
 
