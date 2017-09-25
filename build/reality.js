@@ -931,7 +931,13 @@ var units = Object.freeze({
 	        requestAnimationFrame(function render(time) {
 	            requestAnimationFrame(render);
 	            for (const renderer of renderers) {
-	                renderer.ready && renderer.update(time - lastTime, time);
+	                if (renderer.ready) {
+	                    const delta = time - lastTime;
+	                    renderer.update(delta, time);
+	                    for (const eventHandler of renderer._onAfterUpdateHandlers) {
+	                        eventHandler(delta);
+	                    }
+	                }
 	            }
 	            lastTime = time;
 	        });
@@ -949,6 +955,8 @@ var units = Object.freeze({
 	        this.plugins = [];
 
 	        this.ready = false;
+
+	        this._onAfterUpdateHandlers = [];
 
 	        this.metre = metre;
 	        this.pixelsPerMetre = pixelsPerMetre;
@@ -990,6 +998,10 @@ var units = Object.freeze({
 
 	    update(delta, time) {
 
+	    }
+
+	    onAfterUpdate(handler) {
+	        this._onAfterUpdateHandlers.push(handler);
 	    }
 
 	    onResize() {

@@ -5,6 +5,7 @@
     <title>Reality ThreeJS Example</title>
     <script src="../../build/reality.js"></script>
     <script src="bower_components/three.js/three.min.js"></script>
+    <script src="vendor/threejs/FlyControls.js"></script>
     <style>
         body {
             margin: 0;
@@ -24,6 +25,16 @@
     universe.happen();
 
     renderer.renders(universe);
+
+    const controls = new THREE.FlyControls(renderer.camera);
+
+    controls.movementSpeed = 10000000000;
+    controls.domElement = document.body;
+    controls.rollSpeed = Math.PI / 2400;
+    controls.autoForward = false;
+    controls.dragToLook = false;
+
+    renderer.onAfterUpdate(delta => controls.update(delta));
 
 </script>
 </body>
