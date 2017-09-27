@@ -69,15 +69,16 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         name: 'ball',
         mass: 10,
         size: new universe.Vector({
-            x: 10,
-            y: 10,
-            z: 10,
+            x: 1,
+            y: 1,
+            z: 1,
         }),
         position: new universe.Vector({
-            x: EARTH.DISTANCE_TO_SUN - EARTH.RADIUS - 10,
+            x: EARTH.DISTANCE_TO_SUN,
+            y: EARTH.RADIUS + .5
         }),
     });
-    //universe.add(ball);
+    universe.add(ball);
 
     universe.observer = ball;
 

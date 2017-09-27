@@ -2,6 +2,7 @@ import {Renderer} from "../Renderer";
 import {RealityException} from "../../lib/RealityException";
 import {AU} from "../../lib/Units";
 import {FlyControls} from "./FlyControls";
+import {EARTH} from "../../extra/data/milkyWay/solarSystem";
 
 class ThreeJSRenderer extends Renderer {
 
@@ -47,11 +48,10 @@ class ThreeJSRenderer extends Renderer {
 
         if (!this.camera) {
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, this.scaled(AU * 2));
-            this.camera.position.z = this.scaled(AU);
-
-            console.log(AU);
-            console.log(this.scaled(AU));
-
+            //The camera stands 2 metres from the surface of the earth
+            this.camera.position.x = this.scaled(AU);
+            this.camera.position.y = this.scaled(EARTH.RADIUS + 1);
+            this.camera.position.z = 2;
         }
 
         if (!this.renderer) {
@@ -61,18 +61,11 @@ class ThreeJSRenderer extends Renderer {
 
         for (const body of this.bodiesForSetup()) {
 
-            if (body.name === 'Sun') {
-                //console.log(body.position.x);
-                //console.log(this.scaled(body.position.x));
-            }
+            const segments = body.name === 'Earth' ? 256 : 16;
 
             body.render = new THREE.Mesh(
-                new THREE.CubeGeometry(
-                    this.scaled(body.size.x),
-                    this.scaled(body.size.y),
-                    this.scaled(body.size.z)
-                ),
-                new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true}) //, side:THREE.BackSide
+                new THREE.SphereGeometry(this.scaled(body.size.x / 2), segments, segments),
+                new THREE.MeshBasicMaterial({color: body.name === 'ball' ? 0x0000ff : 0xff0000, wireframe: true}) //, side:THREE.BackSide
             );
             this.scene.add(body.render);
         }

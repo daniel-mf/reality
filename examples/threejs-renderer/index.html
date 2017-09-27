@@ -26,6 +26,8 @@
 
     renderer.plugin(new ThreeJSRenderer.FlyControls());
 
+    universe.target = universe.bodies[1];
+
     universe.happen();
 
     renderer.renders(universe);

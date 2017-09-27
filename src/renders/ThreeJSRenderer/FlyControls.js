@@ -11,7 +11,7 @@ class FlyControls extends RendererPlugin {
 
         controls.movementSpeed = 0;
         controls.domElement = this.renderer.renderDomTarget;
-        controls.rollSpeed = Math.PI / 2000;
+        controls.rollSpeed = Math.PI / 20;
         controls.autoForward = false;
         controls.dragToLook = false;
 
@@ -39,7 +39,7 @@ class FlyControls extends RendererPlugin {
 
     update(delta) {
         // Y U NOT WORK T_T
-        this.controls.movementSpeed = this.renderer.scaled(ly) * delta;
+        this.controls.movementSpeed = (8.33333);
         this.controls.update(delta);
     }
 

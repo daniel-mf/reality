@@ -3,7 +3,14 @@
  */
 
 /**
- * Speed of light in vacuum in metres per second
+ * Pi
+ * @type {number}
+ */
+const Pi = 3.1415926535897932384626433832795028841968;
+
+/**
+ * Speed of light in vacuum
+ * @unit m/s
  * @type {number}
  */
 const c = 299792458;
@@ -74,7 +81,83 @@ const Gpc = 1000000000 * pc;
  */
 const G = 6.67384e-11;
 
+/**
+ * Standard gravity
+ * @unit m/s²
+ * @type {number}
+ */
+const g = 9.80665;
+
+/**
+ * kilogram
+ * @type {number}
+ */
+const kg = 0; //TODO define masss of 1 kg
+
+/**
+ * Metre
+ * @unit length
+ * @type {number}
+ */
+const m = 1 / c;
+
+/**
+ * planck constant
+ * @unit Js
+ * @type {number}
+ */
+const h = 6.626070040 * 10 ** -34;
+
+/**
+ * minus charge of electron
+ * @unit As
+ * @type {number}
+ */
+const e = 1.602189e-19;
+
+/**
+ * proton mass
+ * @unit kg
+ * @type {number}
+ */
+const m_p = 1.672621898 * 10 ** -27;
+
+/**
+ * electron mass
+ * @unit kg
+ * @type {number}
+ */
+const m_e = 9.10938356 * 10 ** -31;
+
+/**
+ * neutron mass
+ * @unit kg
+ * @type {number}
+ */
+const m_n = 1.674927471 * 10 ** -27;
+
+/**
+ * Avogadro
+ * @unit 1/mol
+ * @type {number}
+ */
+const N_A = 6.02205e+23;
+
+/**
+ * Square root of 2
+ * @type {number}
+ */
+const SQRT2 = 1.41421356237309504880168872420969807857;
+
+/**
+ * Boltzmann constant
+ * @unit
+ * @type {number}
+ */
+const k_B = 1.38066e-23;
+
 var units = Object.freeze({
+	Pi: Pi,
 	c: c,
 	a: a,
 	ly: ly,
@@ -86,7 +169,18 @@ var units = Object.freeze({
 	kpc: kpc,
 	Mpc: Mpc,
 	Gpc: Gpc,
-	G: G
+	G: G,
+	g: g,
+	kg: kg,
+	m: m,
+	h: h,
+	e: e,
+	m_p: m_p,
+	m_e: m_e,
+	m_n: m_n,
+	N_A: N_A,
+	SQRT2: SQRT2,
+	k_B: k_B
 });
 
 class RealityException extends Error {
@@ -879,15 +973,16 @@ function createSolarSystem({sunEarthMoon = true} = {sunEarthMoon: true}) {
         name: 'ball',
         mass: 10,
         size: new universe.Vector({
-            x: 10,
-            y: 10,
-            z: 10,
+            x: 1,
+            y: 1,
+            z: 1,
         }),
         position: new universe.Vector({
-            x: EARTH.DISTANCE_TO_SUN - EARTH.RADIUS - 10,
+            x: EARTH.DISTANCE_TO_SUN,
+            y: EARTH.RADIUS + .5
         }),
     });
-    //universe.add(ball);
+    universe.add(ball);
 
     universe.observer = ball;
 
@@ -1226,9 +1321,9 @@ class ZoomControl extends RendererPlugin {
 
         let zoomTimer;
 
-        this.renderer.renderDomTarget.addEventListener('mousewheel', e => {
+        this.renderer.renderDomTarget.addEventListener('mousewheel', e$$1 => {
 
-            e.preventDefault();
+            e$$1.preventDefault();
 
             clearTimeout(zoomTimer);
 
@@ -1258,7 +1353,7 @@ class ZoomControl extends RendererPlugin {
 
             const spaceSize = this.renderer.renderDomTarget.getBoundingClientRect();
 
-            const change = e.deltaY / 100,
+            const change = e$$1.deltaY / 100,
                 previousScale = this.renderer.absoluteScale;
 
             this.renderer.scale -= change * this.renderer.scale * 0.1;
@@ -1266,10 +1361,10 @@ class ZoomControl extends RendererPlugin {
 
             const scaleChange = (this.renderer.absoluteScale / previousScale) - 1;
 
-            this.renderer.pan.x -= ((e.clientX / spaceSize.width)
+            this.renderer.pan.x -= ((e$$1.clientX / spaceSize.width)
                 * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))) * spaceSize.width * scaleChange;
 
-            this.renderer.pan.y -= ((e.clientY / spaceSize.height)
+            this.renderer.pan.y -= ((e$$1.clientY / spaceSize.height)
                 * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))) * spaceSize.height * scaleChange;
 
             if (this.showZoomHelper) {
@@ -1503,15 +1598,15 @@ class FlyControls extends RendererPlugin {
 
         controls.movementSpeed = 0;
         controls.domElement = this.renderer.renderDomTarget;
-        controls.rollSpeed = Math.PI / 2000;
+        controls.rollSpeed = Math.PI / 20;
         controls.autoForward = false;
         controls.dragToLook = false;
 
         this.controls = controls;
 
-        window.addEventListener('mousewheel', e => {
+        window.addEventListener('mousewheel', e$$1 => {
 
-            e.preventDefault();
+            e$$1.preventDefault();
 
             //controls.movementSpeed += (e.deltaY / 10) * (controls.movementSpeed || 1) * 0.01;
 
@@ -1531,7 +1626,7 @@ class FlyControls extends RendererPlugin {
 
     update(delta) {
         // Y U NOT WORK T_T
-        this.controls.movementSpeed = this.renderer.scaled(ly) * delta;
+        this.controls.movementSpeed = (8.33333);
         this.controls.update(delta);
     }
 
@@ -1581,11 +1676,10 @@ class ThreeJSRenderer extends Renderer {
 
         if (!this.camera) {
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, this.scaled(AU * 2));
-            this.camera.position.z = this.scaled(AU);
-
-            console.log(AU);
-            console.log(this.scaled(AU));
-
+            //The camera stands 2 metres from the surface of the earth
+            this.camera.position.x = this.scaled(AU);
+            this.camera.position.y = this.scaled(EARTH.RADIUS + 1);
+            this.camera.position.z = 2;
         }
 
         if (!this.renderer) {
@@ -1595,18 +1689,11 @@ class ThreeJSRenderer extends Renderer {
 
         for (const body of this.bodiesForSetup()) {
 
-            if (body.name === 'Sun') {
-                //console.log(body.position.x);
-                //console.log(this.scaled(body.position.x));
-            }
+            const segments = body.name === 'Earth' ? 256 : 16;
 
             body.render = new THREE.Mesh(
-                new THREE.CubeGeometry(
-                    this.scaled(body.size.x),
-                    this.scaled(body.size.y),
-                    this.scaled(body.size.z)
-                ),
-                new THREE.MeshBasicMaterial({color: 0xff0000, wireframe: true}) //, side:THREE.BackSide
+                new THREE.SphereGeometry(this.scaled(body.size.x / 2), segments, segments),
+                new THREE.MeshBasicMaterial({color: body.name === 'ball' ? 0x0000ff : 0xff0000, wireframe: true}) //, side:THREE.BackSide
             );
             this.scene.add(body.render);
         }
