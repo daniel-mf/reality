@@ -39,7 +39,8 @@ class FlyControls extends RendererPlugin {
 
     update(delta) {
         // Y U NOT WORK T_T
-        this.controls.movementSpeed = (8.33333);
+        const kph = 40;
+        this.controls.movementSpeed = this.renderer.scaled(kph * 0.277777778);
         this.controls.update(delta);
     }
 
