@@ -44,6 +44,7 @@ class Gravitation extends Law {
                         body.applyForce(forceVector);
 
                     } else {
+                        //TODO acceleration is missing
                         for (const [n] of differences) {
                             const velocity = (body.mass * body.velocity[n]
                                 + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);
