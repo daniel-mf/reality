@@ -624,8 +624,6 @@ class Space extends Concreta {
             //The observer should have no dilation at all
             if (body !== observer) {
 
-                console.log(body.acceleration.x);
-
                 /*
                     Each body has:
 
@@ -643,6 +641,8 @@ class Space extends Concreta {
 
                     How can I get time dilation to this body?
                 */
+
+                //...
 
             }
 
@@ -850,6 +850,7 @@ class Gravitation extends Law {
                         body.applyForce(forceVector);
 
                     } else {
+                        //TODO acceleration is missing
                         for (const [n] of differences) {
                             const velocity = (body.mass * body.velocity[n]
                                 + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);

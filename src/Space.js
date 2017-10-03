@@ -31,8 +31,6 @@ class Space extends Concreta {
             //The observer should have no dilation at all
             if (body !== observer) {
 
-                console.log(body.acceleration.x);
-
                 /*
                     Each body has:
 
@@ -50,6 +48,8 @@ class Space extends Concreta {
 
                     How can I get time dilation to this body?
                 */
+
+                //...
 
             }
 
