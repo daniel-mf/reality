@@ -32,7 +32,7 @@ class Gravitation extends Law {
                     const distanceSquared = otherBody.position.distanceToSquared(body.position);
                     const distance = otherBody.position.distanceTo(body.position);
 
-                    if (distance > body.size.x + otherBody.size.x) {
+                    if (distance > body.size.x / 2 + otherBody.size.x / 2) {
 
                         const totalForce = (otherBody.mass / distanceSquared);
                         const forceVector = new this.universe.Vector();

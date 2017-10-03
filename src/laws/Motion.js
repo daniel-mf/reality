@@ -15,6 +15,7 @@ class Motion extends Law {
         }
 
         for (const body of this.universe.bodies) {
+
             if (this.universe.target !== body) {
                 for (const {name: dimensionName} of physicalDimensions) {
                     body.position[dimensionName] =
@@ -24,6 +25,7 @@ class Motion extends Law {
 
                 }
             }
+
         }
 
     }

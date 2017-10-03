@@ -844,7 +844,7 @@ var units = Object.freeze({
 	                    const distanceSquared = otherBody.position.distanceToSquared(body.position);
 	                    const distance = otherBody.position.distanceTo(body.position);
 
-	                    if (distance > body.size.x + otherBody.size.x) {
+	                    if (distance > body.size.x / 2 + otherBody.size.x / 2) {
 
 	                        const totalForce = (otherBody.mass / distanceSquared);
 	                        const forceVector = new this.universe.Vector();
@@ -929,6 +929,7 @@ var units = Object.freeze({
 	        }
 
 	        for (const body of this.universe.bodies) {
+
 	            if (this.universe.target !== body) {
 	                for (const {name: dimensionName} of physicalDimensions) {
 	                    body.position[dimensionName] =
@@ -938,6 +939,7 @@ var units = Object.freeze({
 
 	                }
 	            }
+
 	        }
 
 	    }
