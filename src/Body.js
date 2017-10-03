@@ -40,6 +40,14 @@ class Body extends Concreta {
         return 0; //Density of mass-less stuff? What about a photon?
     }
 
+    applyForce(vector) {
+        for (const n of vector.keys) {
+            this.acceleration[n] += vector[n];
+            this.velocity[n] += vector[n];
+        }
+        return this;
+    }
+
 }
 
 export {Body};

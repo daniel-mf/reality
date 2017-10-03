@@ -47,6 +47,9 @@ class Universe extends Concreta {
                 this.velocity = definition.velocity instanceof universe.Vector ?
                     definition.velocity : new universe.Vector(definition.velocity);
 
+                this.acceleration = definition.acceleration instanceof universe.Vector ?
+                    definition.acceleration : new universe.Vector(definition.acceleration);
+
                 this.size = definition.size instanceof universe.Vector ?
                     definition.size : new universe.Vector(definition.size);
             }
@@ -131,6 +134,15 @@ class Universe extends Concreta {
         return this._target;
     }
 
+    happen() {
+        super.happen();
+
+        //move this away
+        for (const body of this.bodies) {
+            body.acceleration.multiplyScalar(0);
+        }
+
+    }
 }
 
 export {Universe};

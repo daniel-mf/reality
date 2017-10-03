@@ -578,6 +578,14 @@ var units = Object.freeze({
 	        return 0; //Density of mass-less stuff? What about a photon?
 	    }
 
+	    applyForce(vector) {
+	        for (const n of vector.keys) {
+	            this.acceleration[n] += vector[n];
+	            this.velocity[n] += vector[n];
+	        }
+	        return this;
+	    }
+
 	}
 
 	class Dimension extends Abstracta {
@@ -617,17 +625,26 @@ var units = Object.freeze({
 
 	        for (const body of this.universe.bodies) {
 
-	            let eventDeltaDilation = 1;
+	            let eventDeltaDilation = 1; //time delta is multiplied by this
 
 	            //The observer should have no dilation at all
 	            if (body !== observer) {
+
+	                console.log(body.acceleration.x);
 
 	                /*
 	                    Each body has:
 
 	                    body.mass
 	                    body.gravitationalPotential (2 * G * this.mass) Is that right?
+
 	                    body.position.(x,y,z)
+
+	                    //Change to velocity occurred in current time interval (this will always be zero because
+	                    //time dilation is being calculated before any other event, so nothing has yet accelerated this object)
+	                    //Is that right?...
+	                    body.acceleration.(x,y,z)
+
 	                    body.velocity.(x,y,z)
 
 	                    How can I get time dilation to this body?
@@ -698,6 +715,9 @@ var units = Object.freeze({
 
 	                this.velocity = definition.velocity instanceof universe.Vector ?
 	                    definition.velocity : new universe.Vector(definition.velocity);
+
+	                this.acceleration = definition.acceleration instanceof universe.Vector ?
+	                    definition.acceleration : new universe.Vector(definition.acceleration);
 
 	                this.size = definition.size instanceof universe.Vector ?
 	                    definition.size : new universe.Vector(definition.size);
@@ -783,6 +803,15 @@ var units = Object.freeze({
 	        return this._target;
 	    }
 
+	    happen() {
+	        super.happen();
+
+	        //move this away
+	        for (const body of this.bodies) {
+	            body.acceleration.multiplyScalar(0);
+	        }
+
+	    }
 	}
 
 	class Gravitation extends Law {
@@ -821,8 +850,10 @@ var units = Object.freeze({
 	                        const forceVector = new this.universe.Vector();
 
 	                        for (const [n] of forceVector) {
-	                            body.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
+	                            forceVector[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
 	                        }
+
+	                        body.applyForce(forceVector);
 
 	                    } else {
 	                        for (const [n] of differences) {
@@ -830,7 +861,6 @@ var units = Object.freeze({
 	                                + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);
 	                            body.velocity[n] = velocity;
 	                            otherBody.velocity[n] = velocity;
-
 	                        }
 	                    }
 
@@ -904,6 +934,7 @@ var units = Object.freeze({
 	                        targetChange[dimensionName]
 	                        + body.position[dimensionName]
 	                        + (body.velocity[dimensionName] * body.eventDelta);
+
 	                }
 	            }
 	        }

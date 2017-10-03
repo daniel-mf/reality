@@ -38,8 +38,10 @@ class Gravitation extends Law {
                         const forceVector = new this.universe.Vector();
 
                         for (const [n] of forceVector) {
-                            body.velocity[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
+                            forceVector[n] += (((totalForce * differences[n] / distance) * Gravitation.G * body.eventDelta)); //should apply delta?
                         }
+
+                        body.applyForce(forceVector);
 
                     } else {
                         for (const [n] of differences) {
@@ -47,7 +49,6 @@ class Gravitation extends Law {
                                 + otherBody.mass * otherBody.velocity[n]) / (body.mass + otherBody.mass);
                             body.velocity[n] = velocity;
                             otherBody.velocity[n] = velocity;
-
                         }
                     }
 

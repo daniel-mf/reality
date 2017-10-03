@@ -21,6 +21,7 @@ class Motion extends Law {
                         targetChange[dimensionName]
                         + body.position[dimensionName]
                         + (body.velocity[dimensionName] * body.eventDelta);
+
                 }
             }
         }
