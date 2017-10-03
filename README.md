@@ -1,7 +1,13 @@
 Low-level reality framework
 ===========================
 
+[Live demo (`CSS`)](https://rawgit.com/daniel-mf/reality/master/examples/css-renderer/index.html)
+
 ### Purpose ###
 Play with physics (for now)
 
-[Live demo](https://rawgit.com/daniel-mf/reality/master/examples/css-renderer/index.html)
+### Build ###
+```sh
+$ npm install
+$ npm run build
+```
