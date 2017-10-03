@@ -19,7 +19,7 @@ class Thing {
         /**
          * @type {Number}
          */
-        this.eventDeltaDilatation = 1;
+        this.eventDeltaDilation = 1;
 
         this.bornAt = Date.now();
 
@@ -28,7 +28,7 @@ class Thing {
     }
 
     get eventDelta() {
-        return this.universe._eventDelta * this.eventDeltaDilatation;
+        return this.universe._eventDelta * this.eventDeltaDilation;
     }
 
     /**

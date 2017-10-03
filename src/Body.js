@@ -24,7 +24,7 @@ class Body extends Concreta {
      * TODO Is it right?
      * @returns {number}
      */
-    get graviationalPotential() {
+    get gravitationalPotential() {
         return 2 * G * this.mass;
     }
 

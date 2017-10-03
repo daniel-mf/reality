@@ -85,7 +85,7 @@ class CSSRenderer extends Renderer {
                 body.render.querySelector('.info').innerHTML = `
                     <div>(x) Position: ${body.position.x}</div>
                     <div>(x) Velocity: ${body.velocity.x}</div>
-                    <div>Time Dilatation at core: ${-(1 - body.eventDeltaDilatation) * 100}%</div>
+                    <div>Time Dilation at core: ${-(1 - body.eventDeltaDilation) * 100}%</div>
                     <div>Date at core: ${body.currentDate}</div>
                 `;
 

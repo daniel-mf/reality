@@ -220,7 +220,7 @@ var units = Object.freeze({
 	        /**
 	         * @type {Number}
 	         */
-	        this.eventDeltaDilatation = 1;
+	        this.eventDeltaDilation = 1;
 
 	        this.bornAt = Date.now();
 
@@ -229,7 +229,7 @@ var units = Object.freeze({
 	    }
 
 	    get eventDelta() {
-	        return this.universe._eventDelta * this.eventDeltaDilatation;
+	        return this.universe._eventDelta * this.eventDeltaDilation;
 	    }
 
 	    /**
@@ -562,7 +562,7 @@ var units = Object.freeze({
 	     * TODO Is it right?
 	     * @returns {number}
 	     */
-	    get graviationalPotential() {
+	    get gravitationalPotential() {
 	        return 2 * G * this.mass;
 	    }
 
@@ -608,23 +608,51 @@ var units = Object.freeze({
 
 	    happen() {
 	        super.happen();
-	        //TODO cause time dilatation in everything
-	        for (const thing of this.universe.things) {
 
+	        /**
+	         * The observer (time dilation for it should be none)
+	         * @type {Body}
+	         */
+	        const observer = this.universe.observer;
+
+	        for (const body of this.universe.bodies) {
+
+	            let eventDeltaDilation = 1;
+
+	            //The observer should have no dilation at all
+	            if (body !== observer) {
+
+	                /*
+	                    Each body has:
+
+	                    body.mass
+	                    body.gravitationalPotential (2 * G * this.mass) Is that right?
+	                    body.position.(x,y,z)
+	                    body.velocity.(x,y,z)
+
+	                    How can I get time dilation to this body?
+	                */
+
+	            }
+
+
+	            /*
 	            //concept testing only
-	            if (thing.name === 'Sun') {
+	            if (body.name === 'Sun') {
 
 	                const secondsInOneYearOnEarth = a * 86400; //earth is the observer
 
-	                //I heard somewhere that 65 seconds is the time dilatation difference between earth and sun surfaces
+	                //I've read in Quora that 65 seconds is the time dilation difference between earth and sun surfaces
 	                //not 100% accurate since we are working with the object's center, not the surfaces
 	                const secondsInOneYearOnSun = secondsInOneYearOnEarth - 65;
 
-	                thing.eventDeltaDilatation = secondsInOneYearOnSun / secondsInOneYearOnEarth;
+	                eventDeltaDilation = secondsInOneYearOnSun / secondsInOneYearOnEarth;
 
-	            } else {
-	                thing.eventDeltaDilatation = 1;
 	            }
+	            */
+
+
+	            body.eventDeltaDilation = eventDeltaDilation;
 
 	        }
 	    }
@@ -1526,7 +1554,7 @@ var units = Object.freeze({
 	                body.render.querySelector('.info').innerHTML = `
                     <div>(x) Position: ${body.position.x}</div>
                     <div>(x) Velocity: ${body.velocity.x}</div>
-                    <div>Time Dilatation at core: ${-(1 - body.eventDeltaDilatation) * 100}%</div>
+                    <div>Time Dilation at core: ${-(1 - body.eventDeltaDilation) * 100}%</div>
                     <div>Date at core: ${body.currentDate}</div>
                 `;
 
