@@ -1,2 +1,2 @@
-CSS 2D Renderer
----------------
+Canvas 2D Renderer
+------------------

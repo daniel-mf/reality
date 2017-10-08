@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reality CSS Example</title>
+    <script src="../../build/reality.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="world" class="no-labels"></div>
+<div class="controls">
+
+    <div class="tips">
+        <nav>
+            <ul>
+                <li>Press "O" to follow the biggest body in the screen</li>
+                <li>Double-click a body to start following it</li>
+                <li>Drag to move around</li>
+                <li>Scroll to zoom in/out</li>
+                <li>Press "L" to toggle data</li>
+            </ul>
+        </nav>
+        <div class="icon">?</div>
+    </div>
+
+    <div class="control">
+        <div class="description">Time:</div>
+        <input id="time-range" type="range" min="1" max="10000000" step="1" value="1">
+        <div class="detail">1x</div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    const {CSSRenderer, bigBang} = Reality;
+
+    const universe = bigBang();
+
+    const renderer = new CSSRenderer({
+        pixelsPerMetre: 1,
+        renderDomTarget: document.getElementById('world')
+    });
+
+    renderer.plugin(new CSSRenderer.DragControl());
+    renderer.plugin(new CSSRenderer.ZoomControl({helper: true, scaleSample: true}));
+    renderer.plugin(new CSSRenderer.TargetControl());
+
+    renderer.hideBodiesTooClose=false;
+
+    function randomIntFromInterval(min, max) {
+        return Math.random() * (max - min + 1) + min;
+    }
+
+    for (let i = 20; i > 0; i--) {
+
+        const size = randomIntFromInterval(10, 20);
+
+        universe.add(
+            new universe.Body({
+                name: 'Particle',
+                mass: 1000000000000000,
+                position: new universe.Vector({
+                    x: randomIntFromInterval(-window.innerWidth / 2, window.innerWidth / 2),
+                    y: randomIntFromInterval(-window.innerHeight / 2, window.innerHeight / 2),
+                    z: 0
+                }),
+                size: new universe.Vector({
+                    x: size,
+                    y: size,
+                    z: size
+                }),
+                velocity: new universe.Vector({
+                    x: randomIntFromInterval(-30, 30),
+                    y: randomIntFromInterval(-30, 30),
+                    z: randomIntFromInterval(-30, 30),
+                }),
+            })
+        );
+    }
+
+    universe.observer = universe.bodies[0];
+
+    universe.happen();
+    renderer.renders(universe);
+
+    document.getElementById('time-range').addEventListener('input', function (e) {
+        universe.things[0].things[0].speed = this.value;
+        this.nextElementSibling.textContent = this.value + 'x';
+    });
+
+</script>
+</body>
+</html>

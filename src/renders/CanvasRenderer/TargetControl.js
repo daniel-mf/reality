@@ -31,7 +31,7 @@ class TargetControl extends RendererPlugin {
     get biggestBodyInScreen() {
         let volume = 0, selected = null;
         for (const body of this.universe.bodies) {
-            if (body.render.classList.contains('visible')) {
+            if (body.render.visible) {
                 if (body.volume > volume) {
                     volume = body.volume;
                     selected = body;

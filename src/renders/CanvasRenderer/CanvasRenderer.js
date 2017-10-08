@@ -51,6 +51,12 @@ class CanvasRenderer extends Renderer {
 
         for (const body of this.universe.bodies) {
 
+            if (!body.render) {
+                body.render = {};
+            }
+
+            let shouldRender = true;
+
             const toRadius = this.scaled(body.size.x) / 2;
 
             const position = body.position.mapTo((v, n) =>
@@ -61,16 +67,81 @@ class CanvasRenderer extends Renderer {
                 )
             );
 
-            context.beginPath();
-            context.arc(position[0], position[1], toRadius, 0, 2 * Math.PI, false);
-            context.fillStyle = 'green';
-            context.fill();
-            context.lineWidth = 1;
-            context.strokeStyle = '#003300';
-            context.stroke();
+            if (body.render.currentPosition) {
+                shouldRender =
+                    body.render.currentPosition[0] + toRadius > 0
+                    && body.render.currentPosition[1] + toRadius > 0
+                    && body.render.currentPosition[0] - toRadius < spaceSize.x
+                    && body.render.currentPosition[1] - toRadius < spaceSize.y;
+            }
+
+            body.render.visible = shouldRender;
+            body.render.toRadius = toRadius;
+            body.render.currentPosition = position;
 
         }
 
+        this.removeHiddenSmallerBodies();
+
+        this.drawBodies();
+
+    }
+
+    drawBodies() {
+        const context = this.context;
+        for (const body of this.universe.bodies) {
+            if (body.render.visible) {
+                context.beginPath();
+
+                context.arc(
+                    body.render.currentPosition[0], body.render.currentPosition[1],
+                    body.render.toRadius, 0, 2 * Math.PI,
+                    false
+                );
+
+                context.fillStyle = this.universe.target === body ? 'green' : 'gray';
+                context.fill();
+
+                context.font = "12px monospaced";
+                context.fillStyle = this.universe.target === body ? 'lightgreen' : 'white';
+                context.textAlign = "center";
+                context.fillText(body.name, body.render.currentPosition[0], body.render.currentPosition[1] + 3);
+            }
+        }
+    }
+
+    removeHiddenSmallerBodies() {
+        let bodyInvisible = false;
+        for (const body of this.universe.bodies) {
+
+            if (!body.render.visible) {
+                continue;
+            }
+
+            for (const otherBody of this.universe.bodies) {
+                if (body !== otherBody) {
+
+                    const tooCloseX = Math.abs(
+                        (body.render.currentPosition[0] + (body.render.toRadius / 2))
+                        - (otherBody.render.currentPosition[0] + (otherBody.render.toRadius / 2))
+                        ) < 20,
+                        tooCloseY = Math.abs(
+                            (body.render.currentPosition[1] + (body.render.toRadius / 10))
+                            - (otherBody.render.currentPosition[1] + (otherBody.render.toRadius / 10))
+                        ) < 20;
+
+                    bodyInvisible = tooCloseX && tooCloseY && body.volume < otherBody.volume;
+
+                    body.render.visible = !bodyInvisible;
+
+                    if (bodyInvisible) {
+                        break;
+                    }
+
+                }
+            }
+
+        }
     }
 
 }

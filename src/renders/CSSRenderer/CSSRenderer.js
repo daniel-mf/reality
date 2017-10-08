@@ -9,6 +9,7 @@ class CSSRenderer extends Renderer {
 
     constructor() {
         super(...arguments);
+        this.hideBodiesTooClose = true;
         this.pan = {x: 0, y: 0, z: 0};
         this.initialScale = this.scale;
     }
@@ -109,7 +110,9 @@ class CSSRenderer extends Renderer {
 
         }
 
-        this.removeHiddenSmallerBodies();
+        if (this.hideBodiesTooClose) {
+            this.removeHiddenSmallerBodies();
+        }
 
     }
 

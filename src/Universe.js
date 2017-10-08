@@ -52,6 +52,7 @@ class Universe extends Concreta {
 
                 this.size = definition.size instanceof universe.Vector ?
                     definition.size : new universe.Vector(definition.size);
+
             }
         };
 
@@ -140,6 +141,10 @@ class Universe extends Concreta {
         //move this away
         for (const body of this.bodies) {
             body.acceleration.multiplyScalar(0);
+        }
+
+        if (!this.observer) {
+            console.warn('Universe has no observer');
         }
 
     }
