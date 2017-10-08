@@ -1,6 +1,6 @@
 import {Concreta} from "./Concreta";
 import {PhysicalDimension} from "./dimensions/PhysicalDimension";
-import {a} from "./lib/Units";
+import {a, c, G} from "./lib/Units";
 
 class Space extends Concreta {
     constructor() {
@@ -31,6 +31,8 @@ class Space extends Concreta {
             //The observer should have no dilation at all
             if (body !== observer) {
 
+                const otherBodies = this.universe.bodies.filter(otherBody => otherBody !== body);
+
                 /*
                     Each body has:
 
@@ -50,6 +52,66 @@ class Space extends Concreta {
                 */
 
                 //...
+
+                const vars = {};
+
+                const sum = callback => {
+                    let total = 0;
+                    for (const item of this.universe.bodies) {
+                        total += callback(item);
+                    }
+                    return total;
+                };
+
+                //represents the sum of the Newtonian gravitational potentials due to the masses in the neighborhood,
+                // based on their distances r__i from the clock. This sum includes any tidal potentials.
+                vars['GM__i'] = (this.universe.bodies.map(body => body.gravitationalPotential)).reduce((s, v) => s + v);
+
+                //coordinate time
+                vars['t__c'] = '?';
+
+                //a small increment in the coordinate t__c (coordinate time)
+                vars['dt__c'] = '';
+
+                vars['dx'] = body.velocity.x;
+                vars['dy'] = body.velocity.y;
+                vars['dz'] = body.velocity.z;
+
+                //https://wikimedia.org/api/rest_v1/media/math/render/svg/81b6d301d76e41909037ad427d9f31cd6cd4e607
+                vars['dt_2_E'] = (
+
+                    (
+                        1 -
+                        sum(i =>
+                            2 * i.gravitationalPotential
+                            / i.position.distanceTo(body.position) * c ** 2
+                        )
+                    )
+
+                    *
+
+                    vars['dt__c'] ** 2
+
+                    -
+
+                    (
+                        1 -
+                        sum(i =>
+                            2 * i.gravitationalPotential
+                            / i.position.distanceTo(body.position) * c ** 2
+                        )
+                    )
+
+                    ** -1
+
+                    *
+
+                    vars['dx'] ** 2 + vars['dy'] ** 2 + vars['dz'] ** 2
+                    / c ** 2
+
+                );
+
+                // console.log(vars['dt_2_E']);
 
             }
 

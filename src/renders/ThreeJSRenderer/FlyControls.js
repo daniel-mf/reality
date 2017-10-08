@@ -38,8 +38,8 @@ class FlyControls extends RendererPlugin {
     }
 
     update(delta) {
-        // Y U NOT WORK T_T
-        const kph = 40;
+        const kph = 40; //this.universe.target.render.position.distanceTo(this.renderer.camera.position);
+
         this.controls.movementSpeed = this.renderer.scaled(kph * 0.277777778);
         this.controls.update(delta);
     }

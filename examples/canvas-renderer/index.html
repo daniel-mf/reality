@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reality CSS Example</title>
+    <script src="../../build/reality.js"></script>
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    const {createSolarSystem, CanvasRenderer} = Reality;
+
+    const universe = createSolarSystem();
+
+    const renderer = new CanvasRenderer({
+        scale: 1.8527692173675116e-9,
+        renderDomTarget: document.getElementById('world')
+    });
+
+    renderer.plugin(new CanvasRenderer.DragControl());
+    renderer.plugin(new CanvasRenderer.ZoomControl({helper: true, scaleSample: true}));
+    renderer.plugin(new CanvasRenderer.TargetControl());
+
+    universe.happen();
+    renderer.renders(universe);
+
+</script>
+</body>
+</html>

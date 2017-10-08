@@ -630,6 +630,8 @@ var units = Object.freeze({
 	            //The observer should have no dilation at all
 	            if (body !== observer) {
 
+	                const otherBodies = this.universe.bodies.filter(otherBody => otherBody !== body);
+
 	                /*
 	                    Each body has:
 
@@ -649,6 +651,66 @@ var units = Object.freeze({
 	                */
 
 	                //...
+
+	                const vars = {};
+
+	                const sum = callback => {
+	                    let total = 0;
+	                    for (const item of this.universe.bodies) {
+	                        total += callback(item);
+	                    }
+	                    return total;
+	                };
+
+	                //represents the sum of the Newtonian gravitational potentials due to the masses in the neighborhood,
+	                // based on their distances r__i from the clock. This sum includes any tidal potentials.
+	                vars['GM__i'] = (this.universe.bodies.map(body => body.gravitationalPotential)).reduce((s, v) => s + v);
+
+	                //coordinate time
+	                vars['t__c'] = '?';
+
+	                //a small increment in the coordinate t__c (coordinate time)
+	                vars['dt__c'] = '';
+
+	                vars['dx'] = body.velocity.x;
+	                vars['dy'] = body.velocity.y;
+	                vars['dz'] = body.velocity.z;
+
+	                //https://wikimedia.org/api/rest_v1/media/math/render/svg/81b6d301d76e41909037ad427d9f31cd6cd4e607
+	                vars['dt_2_E'] = (
+
+	                    (
+	                        1 -
+	                        sum(i =>
+	                            2 * i.gravitationalPotential
+	                            / i.position.distanceTo(body.position) * c ** 2
+	                        )
+	                    )
+
+	                    *
+
+	                    vars['dt__c'] ** 2
+
+	                    -
+
+	                    (
+	                        1 -
+	                        sum(i =>
+	                            2 * i.gravitationalPotential
+	                            / i.position.distanceTo(body.position) * c ** 2
+	                        )
+	                    )
+
+	                    ** -1
+
+	                    *
+
+	                    vars['dx'] ** 2 + vars['dy'] ** 2 + vars['dz'] ** 2
+	                    / c ** 2
+
+	                );
+
+	                // console.log(vars['dt_2_E']);
 
 	            }
 
@@ -1656,6 +1718,308 @@ var units = Object.freeze({
 	CSSRenderer.DragControl = DragControl;
 	CSSRenderer.ZoomControl = ZoomControl;
 
+	class TargetControl$1 extends RendererPlugin {
+
+	    setup() {
+	        window.addEventListener('keydown', e => {
+	            if (e.key.toLowerCase() !== 'o') return;
+
+	            e.preventDefault();
+
+	            const body = this.biggestBodyInScreen;
+
+	            if (this.universe.target === body) {
+	                console.log(`targeting off`);
+	                this.universe.target = null;
+	                return;
+	            }
+
+	            if (body) {
+	                this.startTargeting(body);
+	            }
+
+	        });
+	    }
+
+	    startTargeting(body) {
+	        this.universe.target = body;
+	        console.log(`targeting: ${body.name}`);
+	    }
+
+	    get biggestBodyInScreen() {
+	        let volume = 0, selected = null;
+	        for (const body of this.universe.bodies) {
+	            if (body.render.classList.contains('visible')) {
+	                if (body.volume > volume) {
+	                    volume = body.volume;
+	                    selected = body;
+	                }
+	            }
+	        }
+	        return selected;
+	    }
+
+	    onAfterBodySetup(body) {
+	        //body.render.addEventListener('dblclick', e => this.startTargeting(body));
+	    }
+	}
+
+	class ZoomControl$1 extends RendererPlugin {
+
+	    constructor({helper = false, scaleSample = false} = {}) {
+	        super(...arguments);
+	        this.zooming = false;
+	        this.showZoomHelper = helper;
+	        this.showScaleSample = scaleSample;
+	        this.zoomHelper = {};
+	    }
+
+	    createScaleSample() {
+	        this.scaleSample = document.createElement('div');
+	        this.scaleSample.classList.add('scale-sample');
+
+	        this.scaleSample.innerHTML = `
+            <div class="scale">
+                    <div class="sample"></div>
+                    <div class="value">1231232km</div>
+                </div>
+        `;
+
+	        document.body.appendChild(this.scaleSample);
+
+	    }
+
+	    updateScaleSample() {
+
+	        const sampleWidthPx = this.scaleSample.querySelector('.sample').getBoundingClientRect().width;
+
+	        let scale = ((sampleWidthPx * this.renderer.metre) / this.renderer.pixelsPerMetre) / this.renderer.scale;
+
+	        if (scale > Gpc) {
+	            scale = (scale / Gpc).toLocaleString() + ' Gpc';
+	        } else if (scale > Mpc) {
+	            scale = (scale / Mpc).toLocaleString() + ' Mpc';
+	        } else if (scale > kpc) {
+	            scale = (scale / kpc).toLocaleString() + ' kpc';
+	        } else if (scale > pc) {
+	            scale = (scale / pc).toLocaleString() + ' pc';
+	        } else if (scale > ly * .1) {
+	            scale = (scale / ly).toLocaleString() + ' ly';
+	        } else if (scale >= AU * .1) {
+	            scale = (scale / AU).toLocaleString() + ' AU';
+	        } else if (scale > 1000) {
+	            scale = (scale / 1000).toLocaleString() + ' km';
+	        } else if (scale > 1) {
+	            scale = scale.toLocaleString() + ' mt';
+	        } else {
+	            scale = scale.toLocaleString() + ' cm';
+	        }
+
+	        this.scaleSample.querySelector('.value').textContent = scale;
+
+	    }
+
+	    setup() {
+
+	        if (this.showScaleSample) {
+	            this.createScaleSample();
+	        }
+
+	        let zoomTimer;
+
+	        this.renderer.renderDomTarget.addEventListener('mousewheel', e$$1 => {
+
+	            e$$1.preventDefault();
+
+	            clearTimeout(zoomTimer);
+
+	            if (!this.zooming) {
+	                if (this.showZoomHelper) {
+	                    if (!this.zoomHelper.element) {
+	                        let pamElement = document.createElement('div');
+	                        pamElement.classList.add('zoomHelper');
+	                        this.renderer.renderDomTarget.appendChild(pamElement);
+	                        this.zoomHelper.element = pamElement;
+	                    } else {
+	                        this.zoomHelper.element.classList.remove('gone');
+	                    }
+	                    this.zoomHelper.scale = this.renderer.absoluteScale;
+	                    this.zoomHelper.x = this.renderer.pan.x;
+	                    this.zoomHelper.y = this.renderer.pan.y;
+	                }
+	                this.zooming = true;
+	            }
+
+	            zoomTimer = setTimeout(() => {
+	                if (this.zoomHelper.element) {
+	                    this.zoomHelper.element.classList.add('gone');
+	                }
+	                this.zooming = false;
+	            }, 200);
+
+	            const spaceSize = this.renderer.renderDomTarget.getBoundingClientRect();
+
+	            const change = e$$1.deltaY / 100,
+	                previousScale = this.renderer.absoluteScale;
+
+	            this.renderer.scale -= change * this.renderer.scale * 0.1;
+	            this.renderer.absoluteScale -= change * this.renderer.absoluteScale * 0.1;
+
+	            const scaleChange = (this.renderer.absoluteScale / previousScale) - 1;
+
+	            this.renderer.pan.x -= ((e$$1.clientX / spaceSize.width)
+	                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))) * spaceSize.width * scaleChange;
+
+	            this.renderer.pan.y -= ((e$$1.clientY / spaceSize.height)
+	                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))) * spaceSize.height * scaleChange;
+
+	            if (this.showZoomHelper) {
+	                this.zoomHelper.element.style.width = (spaceSize.width * (this.renderer.absoluteScale / this.zoomHelper.scale)) + 'px';
+	                this.zoomHelper.element.style.height = (spaceSize.height * (this.renderer.absoluteScale / this.zoomHelper.scale)) + 'px';
+	                this.zoomHelper.element.style.left = (this.renderer.pan.x * this.renderer.absoluteScale) - (this.zoomHelper.x * this.renderer.absoluteScale) + 'px';
+	                this.zoomHelper.element.style.top = (this.renderer.pan.y * this.renderer.absoluteScale) - (this.zoomHelper.y * this.renderer.absoluteScale) + 'px';
+	            }
+
+	            this.updateScaleSample();
+
+	        });
+
+	        this.updateScaleSample();
+	    }
+	}
+
+	class DragControl$1 extends RendererPlugin {
+	    setup() {
+
+	        let dragActive = false,
+	            dragStart = null,
+	            lastDrag = null,
+	            dragSpeed = {x: 0, y: 0};
+
+
+	        this.renderer.renderDomTarget.addEventListener('mousedown', e => {
+	            dragSpeed = {x: 0, y: 0};
+	            dragActive = true;
+	        });
+
+	        window.addEventListener('mousemove', e => {
+	            if (dragActive) {
+
+	                if (!dragStart) {
+	                    dragStart = {x: e.clientX, y: e.clientY};
+	                    this.renderer.renderDomTarget.classList.add('dragging');
+	                }
+
+	                if (lastDrag) {
+	                    dragSpeed.x = e.clientX - lastDrag.x;
+	                    dragSpeed.y = e.clientY - lastDrag.y;
+	                }
+
+	                this.renderer.pan.x += dragSpeed.x / (this.renderer.scale / this.renderer.initialScale);
+	                this.renderer.pan.y += dragSpeed.y / (this.renderer.scale / this.renderer.initialScale);
+
+	                const zoomControl = this.renderer.getPlugin(ZoomControl$1);
+
+	                if (zoomControl && zoomControl.showZoomHelper) {
+	                    if (zoomControl.zoomHelper.element) {
+	                        zoomControl.zoomHelper.element.style.left = (this.renderer.pan.x * this.renderer.absoluteScale)
+	                            - (zoomControl.zoomHelper.x * this.renderer.absoluteScale) + 'px';
+	                        zoomControl.zoomHelper.element.style.top = (this.renderer.pan.y * this.renderer.absoluteScale)
+	                            - (zoomControl.zoomHelper.y * this.renderer.absoluteScale) + 'px';
+	                    }
+	                }
+
+	                lastDrag = {x: e.clientX, y: e.clientY};
+
+	            }
+	        });
+
+	        window.addEventListener('mouseup', e => {
+	            dragActive = false;
+	            dragStart = null;
+	            lastDrag = null;
+	            this.renderer.renderDomTarget.classList.remove('dragging');
+	        });
+
+	    }
+	}
+
+	//still 2d for now
+
+	class CanvasRenderer extends Renderer {
+
+	    constructor() {
+	        super(...arguments);
+	        this.pan = {x: 0, y: 0, z: 0};
+	        this.initialScale = this.scale;
+	    }
+
+	    setup() {
+
+	        let spaceSize = this.renderDomTarget.getBoundingClientRect();
+
+	        this.canvas = document.createElement('canvas');
+	        this.canvas.setAttribute('width', spaceSize.width + 'px');
+	        this.canvas.setAttribute('height', spaceSize.height + 'px');
+	        this.context = this.canvas.getContext('2d');
+
+	        this.renderDomTarget.appendChild(this.canvas);
+
+	        for (const body of this.bodiesForSetup()) {
+
+	        }
+
+	        return super.setup();
+	    }
+
+	    update(delta, time) {
+
+	        const context = this.context;
+
+	        let spaceSize = this.renderDomTarget.getBoundingClientRect();
+
+	        spaceSize = {
+	            x: spaceSize.width,
+	            y: spaceSize.height,
+	            z: 0
+	        };
+
+	        if (!this.initialSpaceSize) {
+	            this.initialSpaceSize = spaceSize;
+	        }
+
+	        context.clearRect(0, 0, this.initialSpaceSize.x, this.initialSpaceSize.y);
+
+	        for (const body of this.universe.bodies) {
+
+	            const toRadius = this.scaled(body.size.x) / 2;
+
+	            const position = body.position.mapTo((v, n) =>
+	                (
+	                    (this.pan[n] * this.absoluteScale)
+	                    + this.scaled((body.position[n]))
+	                    + ((this.initialSpaceSize[n]) * this.absoluteScale / 2)
+	                )
+	            );
+
+	            context.beginPath();
+	            context.arc(position[0], position[1], toRadius, 0, 2 * Math.PI, false);
+	            context.fillStyle = 'green';
+	            context.fill();
+	            context.lineWidth = 1;
+	            context.strokeStyle = '#003300';
+	            context.stroke();
+
+	        }
+
+	    }
+
+	}
+
+	CanvasRenderer.TargetControl = TargetControl$1;
+	CanvasRenderer.DragControl = DragControl$1;
+	CanvasRenderer.ZoomControl = ZoomControl$1;
+
 	class FlyControls extends RendererPlugin {
 
 	    setup() {
@@ -1693,8 +2057,8 @@ var units = Object.freeze({
 	    }
 
 	    update(delta) {
-	        // Y U NOT WORK T_T
-	        const kph = 40;
+	        const kph = 40; //this.universe.target.render.position.distanceTo(this.renderer.camera.position);
+
 	        this.controls.movementSpeed = this.renderer.scaled(kph * 0.277777778);
 	        this.controls.update(delta);
 	    }
@@ -1758,7 +2122,7 @@ var units = Object.freeze({
 
 	        for (const body of this.bodiesForSetup()) {
 
-	            const segments = body.name === 'Earth' ? 256 : 16;
+	            const segments = body.name === 'Earth' ? 64 : 16;
 
 	            body.render = new THREE.Mesh(
 	                new THREE.SphereGeometry(this.scaled(body.size.x / 2), segments, segments),
@@ -1806,6 +2170,7 @@ var units = Object.freeze({
 	exports.PhysicalDimension = PhysicalDimension;
 	exports.Vector = Vector;
 	exports.CSSRenderer = CSSRenderer;
+	exports.CanvasRenderer = CanvasRenderer;
 	exports.ThreeJSRenderer = ThreeJSRenderer;
 	exports.bigBang = bigBang;
 	exports.createSolarSystem = createSolarSystem;

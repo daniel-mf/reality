@@ -1,6 +1,6 @@
 import {Renderer} from "../Renderer";
 import {RealityException} from "../../lib/RealityException";
-import {AU} from "../../lib/Units";
+import {AU, G} from "../../lib/Units";
 import {FlyControls} from "./FlyControls";
 import {EARTH} from "../../extra/data/milkyWay/solarSystem";
 
@@ -61,7 +61,7 @@ class ThreeJSRenderer extends Renderer {
 
         for (const body of this.bodiesForSetup()) {
 
-            const segments = body.name === 'Earth' ? 256 : 16;
+            const segments = body.name === 'Earth' ? 64 : 16;
 
             body.render = new THREE.Mesh(
                 new THREE.SphereGeometry(this.scaled(body.size.x / 2), segments, segments),
