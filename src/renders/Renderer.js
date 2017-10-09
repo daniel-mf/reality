@@ -66,8 +66,19 @@ class Renderer {
 
         this.renderDomTarget = renderDomTarget || document.body;
 
+        this.renderings = new WeakMap();
+
         renderers.push(this);
         start();
+    }
+
+    registerBodyRender(render) {
+        this.renderings.set(this.setupingBody, render);
+        return this;
+    }
+
+    getRenderingFor(body) {
+        return this.renderings.get(body);
     }
 
     /**
@@ -92,10 +103,15 @@ class Renderer {
 
     * bodiesForSetup() {
         for (const body of this.universe.bodies) {
+
+            this.setupingBody = body;
             yield body;
+            this.setupingBody = null;
+
             for (const plugin of this.plugins) {
                 plugin.onAfterBodySetup(body);
             }
+
         }
     }
 

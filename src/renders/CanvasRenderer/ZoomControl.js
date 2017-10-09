@@ -18,7 +18,7 @@ class ZoomControl extends RendererPlugin {
         this.scaleSample.innerHTML = `
             <div class="scale">
                     <div class="sample"></div>
-                    <div class="value">1231232km</div>
+                    <div class="value">0</div>
                 </div>
         `;
 
@@ -104,11 +104,15 @@ class ZoomControl extends RendererPlugin {
 
             const scaleChange = (this.renderer.absoluteScale / previousScale) - 1;
 
-            this.renderer.pan.x -= ((e.clientX / spaceSize.width)
-                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))) * spaceSize.width * scaleChange;
+            this.renderer.pan.x -= (
+                ((e.clientX - spaceSize.left) / spaceSize.width)
+                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))
+            ) * spaceSize.width * scaleChange;
 
-            this.renderer.pan.y -= ((e.clientY / spaceSize.height)
-                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))) * spaceSize.height * scaleChange;
+            this.renderer.pan.y -= (
+                ((e.clientY - spaceSize.top) / spaceSize.height)
+                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))
+            ) * spaceSize.height * scaleChange;
 
             if (this.showZoomHelper) {
                 this.zoomHelper.element.style.width = (spaceSize.width * (this.renderer.absoluteScale / this.zoomHelper.scale)) + 'px';

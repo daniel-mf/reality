@@ -1203,8 +1203,19 @@ var units = Object.freeze({
 
 	        this.renderDomTarget = renderDomTarget || document.body;
 
+	        this.renderings = new WeakMap();
+
 	        renderers.push(this);
 	        start();
+	    }
+
+	    registerBodyRender(render) {
+	        this.renderings.set(this.setupingBody, render);
+	        return this;
+	    }
+
+	    getRenderingFor(body) {
+	        return this.renderings.get(body);
 	    }
 
 	    /**
@@ -1229,10 +1240,15 @@ var units = Object.freeze({
 
 	    * bodiesForSetup() {
 	        for (const body of this.universe.bodies) {
+
+	            this.setupingBody = body;
 	            yield body;
+	            this.setupingBody = null;
+
 	            for (const plugin of this.plugins) {
 	                plugin.onAfterBodySetup(body);
 	            }
+
 	        }
 	    }
 
@@ -1378,7 +1394,7 @@ var units = Object.freeze({
 	    get biggestBodyInScreen() {
 	        let volume = 0, selected = null;
 	        for (const body of this.universe.bodies) {
-	            if (body.render.classList.contains('visible')) {
+	            if (this.renderer.getRenderingFor(body).classList.contains('visible')) {
 	                if (body.volume > volume) {
 	                    volume = body.volume;
 	                    selected = body;
@@ -1389,7 +1405,7 @@ var units = Object.freeze({
 	    }
 
 	    onAfterBodySetup(body) {
-	        body.render.addEventListener('dblclick', e => this.startTargeting(body));
+	        this.renderer.getRenderingFor(body).addEventListener('dblclick', e => this.startTargeting(body));
 	    }
 	}
 
@@ -1410,7 +1426,7 @@ var units = Object.freeze({
 	        this.scaleSample.innerHTML = `
             <div class="scale">
                     <div class="sample"></div>
-                    <div class="value">1231232km</div>
+                    <div class="value">0</div>
                 </div>
         `;
 
@@ -1496,11 +1512,15 @@ var units = Object.freeze({
 
 	            const scaleChange = (this.renderer.absoluteScale / previousScale) - 1;
 
-	            this.renderer.pan.x -= ((e$$1.clientX / spaceSize.width)
-	                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))) * spaceSize.width * scaleChange;
+	            this.renderer.pan.x -= (
+	                ((e$$1.clientX - spaceSize.left) / spaceSize.width)
+	                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))
+	            ) * spaceSize.width * scaleChange;
 
-	            this.renderer.pan.y -= ((e$$1.clientY / spaceSize.height)
-	                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))) * spaceSize.height * scaleChange;
+	            this.renderer.pan.y -= (
+	                ((e$$1.clientY - spaceSize.top) / spaceSize.height)
+	                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))
+	            ) * spaceSize.height * scaleChange;
 
 	            if (this.showZoomHelper) {
 	                this.zoomHelper.element.style.width = (spaceSize.width * (this.renderer.absoluteScale / this.zoomHelper.scale)) + 'px';
@@ -1588,10 +1608,10 @@ var units = Object.freeze({
 
 	        let index = 1;
 	        for (const body of this.bodiesForSetup()) {
-	            this.renderDomTarget.appendChild(
-	                this.createBodyElement(body)
-	            );
-	            body.render.style.zIndex = index++;
+	            const element = this.createBodyElement(body);
+	            this.renderDomTarget.appendChild(element);
+	            element.style.zIndex = index++;
+	            this.registerBodyRender(element);
 	        }
 
 	        return super.setup();
@@ -1606,7 +1626,6 @@ var units = Object.freeze({
         `;
 	        element.style.width = this.scaled(body.size.x) + 'px';
 	        element.style.height = this.scaled(body.size.y) + 'px';
-	        body.render = element;
 	        return element;
 	    }
 
@@ -1626,6 +1645,8 @@ var units = Object.freeze({
 
 	        for (const body of this.universe.bodies) {
 
+	            const bodyRender = this.getRenderingFor(body);
+
 	            let shouldUpdateRender = true;
 
 	            const toWidth = this.scaled(body.size.x);
@@ -1639,21 +1660,21 @@ var units = Object.freeze({
 	                )
 	            );
 
-	            if (body.render.currentPosition) {
+	            if (bodyRender.currentPosition) {
 	                shouldUpdateRender =
-	                    body.render.currentPosition[0] + toWidth > 0
-	                    && body.render.currentPosition[1] + toHeight > 0
-	                    && body.render.currentPosition[0] < spaceSize.x
-	                    && body.render.currentPosition[1] < spaceSize.y;
+	                    bodyRender.currentPosition[0] + toWidth > 0
+	                    && bodyRender.currentPosition[1] + toHeight > 0
+	                    && bodyRender.currentPosition[0] < spaceSize.x
+	                    && bodyRender.currentPosition[1] < spaceSize.y;
 	            }
 
-	            body.render.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
+	            bodyRender.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
 
 	            if (shouldUpdateRender) {
 
-	                body.render.classList[this.universe.target === body ? 'add' : 'remove']('target');
+	                bodyRender.classList[this.universe.target === body ? 'add' : 'remove']('target');
 
-	                body.render.querySelector('.info').innerHTML = `
+	                bodyRender.querySelector('.info').innerHTML = `
                     <div>(x) Position: ${body.position.x}</div>
                     <div>(x) Velocity: ${body.velocity.x}</div>
                     <div>Time Dilation at core: ${-(1 - body.eventDeltaDilation) * 100}%</div>
@@ -1661,10 +1682,10 @@ var units = Object.freeze({
                 `;
 
 	                //alternative to scaling to avoid scaling bug on chrome
-	                body.render.style.width = toWidth + 'px';
-	                body.render.style.height = toHeight + 'px';
+	                bodyRender.style.width = toWidth + 'px';
+	                bodyRender.style.height = toHeight + 'px';
 
-	                body.render.style.transform = [
+	                bodyRender.style.transform = [
 	                    'translate3d('
 	                    + (position.map((v, i) => (i === 2 ? 0 : v) + 'px').join(','))
 	                    + ')',
@@ -1674,9 +1695,9 @@ var units = Object.freeze({
 
 	            }
 
-	            body.render.currentWidth = toWidth;
-	            body.render.currentHeight = toHeight;
-	            body.render.currentPosition = position;
+	            bodyRender.currentWidth = toWidth;
+	            bodyRender.currentHeight = toHeight;
+	            bodyRender.currentPosition = position;
 
 	        }
 
@@ -1690,25 +1711,29 @@ var units = Object.freeze({
 	        let bodyInvisible = false;
 	        for (const body of this.universe.bodies) {
 
-	            if (!body.render.classList.contains('visible')) {
+	            const bodyRender = this.getRenderingFor(body);
+
+	            if (!bodyRender.classList.contains('visible')) {
 	                continue;
 	            }
 
 	            for (const otherBody of this.universe.bodies) {
 	                if (body !== otherBody) {
+	                    
+	                    const otherBodyRender = this.getRenderingFor(otherBody);
 
 	                    const tooCloseX = Math.abs(
-	                        (body.render.currentPosition[0] + (body.render.currentWidth / 2))
-	                        - (otherBody.render.currentPosition[0] + (otherBody.render.currentWidth / 2))
+	                        (bodyRender.currentPosition[0] + (bodyRender.currentWidth / 2))
+	                        - (otherBodyRender.currentPosition[0] + (otherBodyRender.currentWidth / 2))
 	                        ) < 20,
 	                        tooCloseY = Math.abs(
-	                            (body.render.currentPosition[1] + (body.render.currentHeight / 2))
-	                            - (otherBody.render.currentPosition[1] + (otherBody.render.currentHeight / 2))
+	                            (bodyRender.currentPosition[1] + (bodyRender.currentHeight / 2))
+	                            - (otherBodyRender.currentPosition[1] + (otherBodyRender.currentHeight / 2))
 	                        ) < 20;
 
 	                    bodyInvisible = tooCloseX && tooCloseY && body.volume < otherBody.volume;
 
-	                    body.render.classList[bodyInvisible ? 'remove' : 'add']('visible');
+	                    bodyRender.classList[bodyInvisible ? 'remove' : 'add']('visible');
 
 	                    if (bodyInvisible) {
 	                        break;
@@ -1789,7 +1814,7 @@ var units = Object.freeze({
 	        this.scaleSample.innerHTML = `
             <div class="scale">
                     <div class="sample"></div>
-                    <div class="value">1231232km</div>
+                    <div class="value">0</div>
                 </div>
         `;
 
@@ -1875,11 +1900,15 @@ var units = Object.freeze({
 
 	            const scaleChange = (this.renderer.absoluteScale / previousScale) - 1;
 
-	            this.renderer.pan.x -= ((e$$1.clientX / spaceSize.width)
-	                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))) * spaceSize.width * scaleChange;
+	            this.renderer.pan.x -= (
+	                ((e$$1.clientX - spaceSize.left) / spaceSize.width)
+	                * (spaceSize.width / (spaceSize.width * this.renderer.absoluteScale))
+	            ) * spaceSize.width * scaleChange;
 
-	            this.renderer.pan.y -= ((e$$1.clientY / spaceSize.height)
-	                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))) * spaceSize.height * scaleChange;
+	            this.renderer.pan.y -= (
+	                ((e$$1.clientY - spaceSize.top) / spaceSize.height)
+	                * (spaceSize.height / (spaceSize.height * this.renderer.absoluteScale))
+	            ) * spaceSize.height * scaleChange;
 
 	            if (this.showZoomHelper) {
 	                this.zoomHelper.element.style.width = (spaceSize.width * (this.renderer.absoluteScale / this.zoomHelper.scale)) + 'px';

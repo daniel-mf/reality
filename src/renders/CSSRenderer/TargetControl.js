@@ -31,7 +31,7 @@ class TargetControl extends RendererPlugin {
     get biggestBodyInScreen() {
         let volume = 0, selected = null;
         for (const body of this.universe.bodies) {
-            if (body.render.classList.contains('visible')) {
+            if (this.renderer.getRenderingFor(body).classList.contains('visible')) {
                 if (body.volume > volume) {
                     volume = body.volume;
                     selected = body;
@@ -42,7 +42,7 @@ class TargetControl extends RendererPlugin {
     }
 
     onAfterBodySetup(body) {
-        body.render.addEventListener('dblclick', e => this.startTargeting(body));
+        this.renderer.getRenderingFor(body).addEventListener('dblclick', e => this.startTargeting(body));
     }
 }
 

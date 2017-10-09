@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../build/reality.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #222;
+        }
+
+        .world {
+            position: absolute;
+            left: 0;
+            bottom: auto;
+            height: 50%;
+        }
+
+        .world.css {
+            top: 0;
+        }
+
+        .world.css {
+            top: 50%;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="world css" id="cssUniverse"></div>
+<div class="world canvas" id="canvasUniverse"></div>
+
+<script type="text/javascript">
+
+
+    const {createSolarSystem, CSSRenderer, CanvasRenderer, UNIT: {ly}} = Reality;
+
+    const universe = createSolarSystem();
+
+    universe.happen();
+
+    const cssRenderer = new CSSRenderer({
+        scale: 1.8527692173675116e-9,
+        renderDomTarget: document.getElementById('cssUniverse')
+    });
+    cssRenderer.plugin(new CSSRenderer.DragControl());
+    cssRenderer.plugin(new CSSRenderer.ZoomControl({helper: true, scaleSample: true}));
+    cssRenderer.plugin(new CSSRenderer.TargetControl());
+    cssRenderer.renders(universe);
+
+    const canvasRenderer = new CanvasRenderer({
+        scale: 1.8527692173675116e-9,
+        renderDomTarget: document.getElementById('canvasUniverse')
+    });
+    canvasRenderer.plugin(new CanvasRenderer.DragControl());
+    canvasRenderer.plugin(new CanvasRenderer.ZoomControl({helper: true, scaleSample: true}));
+    canvasRenderer.plugin(new CanvasRenderer.TargetControl());
+    canvasRenderer.renders(universe);
+
+    /*document.getElementById('time-range').addEventListener('input', function (e) {
+        universe.things[0].things[0].speed = this.value;
+        this.nextElementSibling.textContent = this.value + 'x';
+    });*/
+
+
+</script>
+
+</body>
+</html>

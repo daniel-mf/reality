@@ -18,10 +18,10 @@ class CSSRenderer extends Renderer {
 
         let index = 1;
         for (const body of this.bodiesForSetup()) {
-            this.renderDomTarget.appendChild(
-                this.createBodyElement(body)
-            );
-            body.render.style.zIndex = index++;
+            const element = this.createBodyElement(body);
+            this.renderDomTarget.appendChild(element);
+            element.style.zIndex = index++;
+            this.registerBodyRender(element);
         }
 
         return super.setup();
@@ -36,7 +36,6 @@ class CSSRenderer extends Renderer {
         `;
         element.style.width = this.scaled(body.size.x) + 'px';
         element.style.height = this.scaled(body.size.y) + 'px';
-        body.render = element;
         return element;
     }
 
@@ -56,6 +55,8 @@ class CSSRenderer extends Renderer {
 
         for (const body of this.universe.bodies) {
 
+            const bodyRender = this.getRenderingFor(body);
+
             let shouldUpdateRender = true;
 
             const toWidth = this.scaled(body.size.x);
@@ -69,21 +70,21 @@ class CSSRenderer extends Renderer {
                 )
             );
 
-            if (body.render.currentPosition) {
+            if (bodyRender.currentPosition) {
                 shouldUpdateRender =
-                    body.render.currentPosition[0] + toWidth > 0
-                    && body.render.currentPosition[1] + toHeight > 0
-                    && body.render.currentPosition[0] < spaceSize.x
-                    && body.render.currentPosition[1] < spaceSize.y;
+                    bodyRender.currentPosition[0] + toWidth > 0
+                    && bodyRender.currentPosition[1] + toHeight > 0
+                    && bodyRender.currentPosition[0] < spaceSize.x
+                    && bodyRender.currentPosition[1] < spaceSize.y;
             }
 
-            body.render.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
+            bodyRender.classList[shouldUpdateRender ? 'add' : 'remove']('visible');
 
             if (shouldUpdateRender) {
 
-                body.render.classList[this.universe.target === body ? 'add' : 'remove']('target');
+                bodyRender.classList[this.universe.target === body ? 'add' : 'remove']('target');
 
-                body.render.querySelector('.info').innerHTML = `
+                bodyRender.querySelector('.info').innerHTML = `
                     <div>(x) Position: ${body.position.x}</div>
                     <div>(x) Velocity: ${body.velocity.x}</div>
                     <div>Time Dilation at core: ${-(1 - body.eventDeltaDilation) * 100}%</div>
@@ -91,10 +92,10 @@ class CSSRenderer extends Renderer {
                 `;
 
                 //alternative to scaling to avoid scaling bug on chrome
-                body.render.style.width = toWidth + 'px';
-                body.render.style.height = toHeight + 'px';
+                bodyRender.style.width = toWidth + 'px';
+                bodyRender.style.height = toHeight + 'px';
 
-                body.render.style.transform = [
+                bodyRender.style.transform = [
                     'translate3d('
                     + (position.map((v, i) => (i === 2 ? 0 : v) + 'px').join(','))
                     + ')',
@@ -104,9 +105,9 @@ class CSSRenderer extends Renderer {
 
             }
 
-            body.render.currentWidth = toWidth;
-            body.render.currentHeight = toHeight;
-            body.render.currentPosition = position;
+            bodyRender.currentWidth = toWidth;
+            bodyRender.currentHeight = toHeight;
+            bodyRender.currentPosition = position;
 
         }
 
@@ -120,25 +121,29 @@ class CSSRenderer extends Renderer {
         let bodyInvisible = false;
         for (const body of this.universe.bodies) {
 
-            if (!body.render.classList.contains('visible')) {
+            const bodyRender = this.getRenderingFor(body);
+
+            if (!bodyRender.classList.contains('visible')) {
                 continue;
             }
 
             for (const otherBody of this.universe.bodies) {
                 if (body !== otherBody) {
+                    
+                    const otherBodyRender = this.getRenderingFor(otherBody);
 
                     const tooCloseX = Math.abs(
-                        (body.render.currentPosition[0] + (body.render.currentWidth / 2))
-                        - (otherBody.render.currentPosition[0] + (otherBody.render.currentWidth / 2))
+                        (bodyRender.currentPosition[0] + (bodyRender.currentWidth / 2))
+                        - (otherBodyRender.currentPosition[0] + (otherBodyRender.currentWidth / 2))
                         ) < 20,
                         tooCloseY = Math.abs(
-                            (body.render.currentPosition[1] + (body.render.currentHeight / 2))
-                            - (otherBody.render.currentPosition[1] + (otherBody.render.currentHeight / 2))
+                            (bodyRender.currentPosition[1] + (bodyRender.currentHeight / 2))
+                            - (otherBodyRender.currentPosition[1] + (otherBodyRender.currentHeight / 2))
                         ) < 20;
 
                     bodyInvisible = tooCloseX && tooCloseY && body.volume < otherBody.volume;
 
-                    body.render.classList[bodyInvisible ? 'remove' : 'add']('visible');
+                    bodyRender.classList[bodyInvisible ? 'remove' : 'add']('visible');
 
                     if (bodyInvisible) {
                         break;
