@@ -72,13 +72,22 @@ class Renderer {
         start();
     }
 
-    registerBodyRender(render) {
-        this.renderings.set(this.setupingBody, render);
-        return this;
-    }
-
+    /**
+     * @param {Body} body
+     * @returns {Object|null}
+     */
     getRenderingFor(body) {
         return this.renderings.get(body);
+    }
+
+    /**
+     * @param {Body} body
+     * @param {Object} rendering
+     * @returns {Renderer}
+     */
+    setRenderingFor(body, rendering) {
+        this.renderings.set(body, rendering);
+        return this;
     }
 
     /**
@@ -104,9 +113,7 @@ class Renderer {
     * bodiesForSetup() {
         for (const body of this.universe.bodies) {
 
-            this.setupingBody = body;
             yield body;
-            this.setupingBody = null;
 
             for (const plugin of this.plugins) {
                 plugin.onAfterBodySetup(body);

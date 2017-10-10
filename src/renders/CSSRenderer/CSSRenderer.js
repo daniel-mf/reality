@@ -18,10 +18,12 @@ class CSSRenderer extends Renderer {
 
         let index = 1;
         for (const body of this.bodiesForSetup()) {
+
             const element = this.createBodyElement(body);
             this.renderDomTarget.appendChild(element);
             element.style.zIndex = index++;
-            this.registerBodyRender(element);
+
+            this.setRenderingFor(body, element);
         }
 
         return super.setup();
@@ -129,7 +131,7 @@ class CSSRenderer extends Renderer {
 
             for (const otherBody of this.universe.bodies) {
                 if (body !== otherBody) {
-                    
+
                     const otherBodyRender = this.getRenderingFor(otherBody);
 
                     const tooCloseX = Math.abs(
